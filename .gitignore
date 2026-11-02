@@ -1,0 +1,50 @@
+# 忽略规则
+node_modules/
+dist/
+dist-ssr/
+build/
+target/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 运行时产物
+instances/
+logs/
+cache/
+*.sqlite
+*.sqlite3
+*.db
+
+# 环境与密钥
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+!LICENSE
+
+# 编辑器与系统
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 测试与覆盖率
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+*.log
+
+# 本地模型与产物（绝不入库）
+models/
+output/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.onnx
