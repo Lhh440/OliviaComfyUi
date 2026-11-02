@@ -1,0 +1,1313 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Olivia ComfyUI 启动器 · 配色方案对比</title>
+<style>
+:root{
+  --bg0:#0B0C10; --bg1:#13151B; --bg2:#1B1E27; --line:#262A35;
+  --ink:#E8EAF0; --ink2:#A2A8B8; --muted:#7C8398;
+  --accent:#7C8CFF; --accent2:#4F6BED;
+  --ok:#3FBF8F; --warn:#E0A94A; --danger:#E2574C; --info:#5FD3C4;
+  --plate:#1B1E27; --plate-line:rgba(255,255,255,.06);
+  --r-card:14px; --r-btn:9px; --r-tag:6px;
+  --font-display:Georgia,"Songti SC","Noto Serif SC",serif;
+  --font-ui:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+  --font-mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg0); color:var(--ink);
+  font-family:var(--font-ui); font-size:13.5px; line-height:1.55;
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+  transition:background 400ms ease, color 400ms ease;
+}
+::selection{background:var(--accent);color:var(--bg0)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+#splash{
+  position:fixed;inset:0;z-index:100;background:var(--bg0);
+  display:grid;place-items:center;
+  transition:opacity 900ms cubic-bezier(.2,.7,.2,1),transform 900ms cubic-bezier(.2,.7,.2,1);
+}
+#splash.out{opacity:0;transform:scale(1.02);pointer-events:none}
+#tree{width:min(56vh,560px);height:min(56vh,560px);display:block;touch-action:none;cursor:crosshair}
+.splash-brand{position:absolute;top:38px;left:44px}
+.splash-brand .mark{font-family:var(--font-display);font-size:22px;letter-spacing:.22em;color:var(--ink)}
+.splash-brand .sub{font-size:11.5px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.splash-brand .ver{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);margin-top:6px;letter-spacing:.05em}
+.splash-foot{position:absolute;left:44px;right:44px;bottom:40px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.splash-status{font-size:12.5px;color:var(--ink2);display:flex;align-items:baseline;gap:10px}
+.splash-status .pct{font-family:var(--font-mono);font-size:13px;color:var(--accent);font-variant-numeric:tabular-nums}
+.track{width:240px;height:2px;background:var(--line);position:relative;margin-top:10px}
+.track .fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--accent);transition:width 420ms cubic-bezier(.3,.8,.3,1)}
+.track .tick{position:absolute;top:-3px;width:1px;height:8px;background:var(--line);transition:background 300ms}
+.track .tick.on{background:var(--accent)}
+#skip{font-size:12px;color:var(--muted);padding:6px 2px;border-bottom:1px solid transparent;transition:color 200ms,border-color 200ms}
+#skip:hover{color:var(--ink);border-bottom-color:var(--line)}
+
+#app{
+  height:100%;display:grid;grid-template-columns:236px 1fr;
+  opacity:0;transform:translateY(8px);
+  transition:opacity 900ms cubic-bezier(.2,.7,.2,1),transform 900ms cubic-bezier(.2,.7,.2,1);
+}
+#app.in{opacity:1;transform:none}
+
+.sidebar{background:var(--bg1);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:22px 14px 14px}
+.brand{padding:0 10px 22px}
+.brand .mark{font-family:var(--font-display);font-size:19px;letter-spacing:.2em;color:var(--ink)}
+.brand .sub{font-size:11px;color:var(--muted);margin-top:1px}
+.nav{display:flex;flex-direction:column;gap:2px;flex:1}
+.nav button{
+  display:flex;align-items:center;gap:10px;height:38px;padding:0 11px;
+  border-radius:var(--r-btn);color:var(--ink2);text-align:left;
+  border:1px solid transparent;transition:background 200ms,color 200ms,border-color 200ms;
+}
+.nav button:hover{background:var(--bg2);color:var(--ink)}
+.nav button[aria-current="page"]{background:var(--bg2);border-color:var(--line);color:var(--ink)}
+.nav .idx{font-family:var(--font-mono);font-size:10px;color:var(--muted);width:12px}
+.nav button[aria-current="page"] .idx{color:var(--accent)}
+.side-foot{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.sponsor-side{display:flex;align-items:center;gap:8px;height:38px;padding:0 10px;border-radius:var(--r-btn);font-size:12px;color:var(--ink2);transition:background 200ms,color 200ms}
+.sponsor-side:hover{background:var(--bg2);color:var(--ink)}
+.sponsor-side .dot{width:7px;height:7px;border-radius:50%;background:var(--warn);flex:none}
+.ver-line{display:flex;justify-content:space-between;padding:0 10px;font-family:var(--font-mono);font-size:10.5px;color:var(--muted)}
+
+.main{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{height:64px;flex:none;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:0 26px;background:var(--bg0)}
+.inst-select{display:flex;align-items:center;gap:10px;height:36px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-btn);background:var(--bg1);transition:border-color 200ms}
+.inst-select:hover{border-color:var(--accent)}
+.inst-select .name{font-size:13px}
+.tag{font-family:var(--font-mono);font-size:10px;padding:1px 5px;border-radius:var(--r-tag);background:var(--bg2);color:var(--ink2);border:1px solid var(--line)}
+.tag.cu{background:transparent;color:var(--info);border-color:var(--info);opacity:.85}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none;transition:background 300ms}
+.status-dot.on{background:var(--ok);animation:breathe 2s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.42}}
+.topbar .spacer{flex:1}
+.topbar .meta{font-family:var(--font-mono);font-size:11.5px;color:var(--muted)}
+.btn{height:36px;padding:0 18px;border-radius:var(--r-btn);font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--bg1);color:var(--ink);transition:transform 300ms ease-out,border-color 200ms,background 200ms}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn:active{transform:translateY(0)}
+.btn.primary{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+.btn.primary:hover{background:var(--accent);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+
+.content{flex:1;overflow-y:auto;padding:26px;scroll-behavior:smooth}
+.content::-webkit-scrollbar{width:10px}
+.content::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px;border:3px solid var(--bg0)}
+.page{display:none;animation:pageIn 320ms ease-out}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.page-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;gap:16px}
+.page-head h1{font-family:var(--font-display);font-size:28px;font-weight:400;letter-spacing:.01em}
+.page-head .hint{font-size:12px;color:var(--muted)}
+
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.card{position:relative;z-index:0;grid-column:span 12;background:var(--bg1);border:1px solid var(--line);border-radius:var(--r-card);padding:17px;transition:transform 300ms ease-out,border-color 300ms}
+.card::before{
+  content:'';position:absolute;inset:0;z-index:-1;border-radius:var(--r-card);
+  border:1px solid var(--plate-line);background:var(--plate);opacity:.75;
+  transform:translateY(6px);transition:transform 300ms ease-out,opacity 300ms ease-out;
+}
+.card:hover{transform:translateY(-4px);border-color:var(--accent)}
+.card:hover::before{transform:translateY(12px);opacity:1}
+.card.flat::before{display:none}
+.card.flat:hover{transform:none}
+.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}
+.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}
+@media(max-width:1180px){.c3{grid-column:span 6}.c4{grid-column:span 6}.c5{grid-column:span 12}.c7,.c8{grid-column:span 12}}
+@media(max-width:820px){.c3,.c4,.c6{grid-column:span 12}}
+
+.card-title{font-size:13px;color:var(--ink2);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.card-title .more{font-size:11px;color:var(--muted)}
+.metric{font-family:var(--font-display);font-size:30px;line-height:1.15;color:var(--ink)}
+.metric small{font-family:var(--font-ui);font-size:12px;color:var(--muted);margin-left:5px}
+.metric-sub{font-size:11.5px;color:var(--muted);margin-top:4px}
+
+.banner{grid-column:span 12;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--r-card);background:transparent;border:1px solid var(--danger)}
+.banner .ico{width:3px;height:34px;background:var(--danger);border-radius:2px;flex:none}
+.banner .txt{flex:1;min-width:0}
+.banner .txt b{font-weight:600;color:var(--danger);display:block;margin-bottom:1px}
+.banner .txt span{font-size:12px;color:var(--ink2)}
+.banner .btn{height:32px;padding:0 14px;font-size:12.5px}
+
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.st i{width:7px;height:7px;border-radius:50%;display:block;flex:none}
+.st.ok i{background:var(--ok)}.st.warn i{background:var(--warn)}.st.bad i{background:var(--danger)}
+.st.idle i{background:var(--muted)}
+
+.bar{height:2px;background:var(--bg2);border-radius:1px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:1px;transition:width 420ms cubic-bezier(.3,.8,.3,1)}
+
+.chart{width:100%;height:104px;display:block}
+.chart-legend{display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--muted)}
+.chart-legend span{display:flex;align-items:center;gap:5px}
+.chart-legend i{width:12px;height:2px;background:var(--accent);display:block}
+.chart-legend i.thin{height:1px;background:var(--info)}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-weight:400;font-size:11px;color:var(--muted);padding:0 10px 8px;border-bottom:1px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:none}
+td.mono{font-family:var(--font-mono);font-size:11.5px;font-variant-numeric:tabular-nums}
+.pill{font-size:10.5px;padding:1px 7px;border-radius:var(--r-tag);background:var(--bg2);border:1px solid var(--line);color:var(--ink2)}
+.pill.run{background:transparent;border-color:var(--ok);color:var(--ok)}
+.pill.bad{background:transparent;border-color:var(--danger);color:var(--danger)}
+
+.empty{grid-column:span 12;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:52px 24px;gap:14px}
+.empty h3{font-family:var(--font-display);font-size:19px;font-weight:400}
+.empty p{font-size:12.5px;color:var(--muted);max-width:440px;line-height:1.7}
+.empty canvas{opacity:.6}
+
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px}
+.thumb{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--bg2);aspect-ratio:1}
+.thumb canvas{width:100%;height:100%;display:block}
+.thumb .cap{position:absolute;left:0;right:0;bottom:0;padding:6px 8px;font-family:var(--font-mono);font-size:9.5px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.72))}
+
+.sponsor-card{grid-column:span 12;display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:var(--r-card);background:var(--bg1);border:1px solid var(--line)}
+.sponsor-card .fruit{width:26px;height:26px;flex:none}
+.sponsor-card .txt{flex:1;min-width:0}
+.sponsor-card .txt b{display:block;font-weight:600;font-size:12.5px;margin-bottom:1px}
+.sponsor-card .txt span{font-size:11.5px;color:var(--muted)}
+.sponsor-card a{font-size:12px;color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent);padding-bottom:1px;white-space:nowrap}
+.sponsor-card .x{color:var(--muted);font-size:15px;padding:0 4px;line-height:1}
+
+.log{font-family:var(--font-mono);font-size:11px;line-height:1.85;color:var(--ink2);background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;max-height:180px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.log .t{color:var(--muted)}
+.log .ok{color:var(--ok)}
+.log .warn{color:var(--warn)}
+.hidden{display:none!important}
+
+.theme-switch{display:flex;align-items:center;gap:6px;padding:3px;border:1px solid var(--line);border-radius:var(--r-btn);background:var(--bg1)}
+.theme-switch button{
+  display:flex;align-items:center;gap:6px;height:26px;padding:0 9px;border-radius:6px;
+  font-size:11.5px;color:var(--muted);transition:background 200ms,color 200ms;
+}
+.theme-switch button:hover{color:var(--ink)}
+.theme-switch button[aria-pressed="true"]{background:var(--bg2);color:var(--ink)}
+.theme-switch .sw{width:9px;height:9px;border-radius:50%;flex:none;border:1px solid rgba(128,128,128,.35)}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <canvas id="tree" aria-hidden="true"></canvas>
+  <div class="splash-brand">
+    <div class="mark">OLIVIA</div>
+    <div class="sub">ComfyUI 启动器</div>
+    <div class="ver">v0.1.0-m1 · palette study</div>
+  </div>
+  <div class="splash-foot">
+    <div>
+      <div class="splash-status"><span id="stage">正在解析运行环境</span><span class="pct" id="pct">0%</span></div>
+      <div class="track" id="track"><div class="fill" id="fill"></div></div>
+    </div>
+    <button id="skip">跳过启动动画</button>
+  </div>
+</div>
+
+<div id="app" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">OLIVIA</div>
+      <div class="sub">ComfyUI 启动器</div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-page="overview" aria-current="page"><span class="idx">1</span>总览</button>
+      <button data-page="instances"><span class="idx">2</span>实例</button>
+      <button data-page="queue"><span class="idx">3</span>队列</button>
+      <button data-page="hardware"><span class="idx">4</span>硬件</button>
+      <button data-page="assets"><span class="idx">5</span>资产</button>
+      <button data-page="models"><span class="idx">6</span>模型</button>
+      <button data-page="settings"><span class="idx">7</span>设置</button>
+    </nav>
+    <div class="side-foot">
+      <a class="sponsor-side" href="#" onclick="return false;"><span class="dot"></span>爱发电支持</a>
+      <div class="ver-line"><span>v0.1.0-m1</span><span>GPL-3.0</span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="inst-select">
+        <span class="status-dot" id="runDot"></span>
+        <span class="name">ComfyUI · 默认实例</span>
+        <span class="tag" id="verTag">v0.3.58</span>
+        <span class="tag cu">CUDA 12.4</span>
+      </button>
+      <span class="meta" id="portMeta">127.0.0.1:8188</span>
+      <span class="spacer"></span>
+      <div class="theme-switch" id="themeSwitch" role="group" aria-label="配色方案"></div>
+      <span class="meta" id="clock">--:--:--</span>
+      <button class="btn primary" id="powerBtn">启动</button>
+    </header>
+
+    <div class="content" id="content">
+
+      <section class="page active" id="page-overview">
+        <div class="page-head"><h1>总览</h1><span class="hint">当前实例能否出图？还差什么？</span></div>
+        <div class="grid">
+          <div class="banner" id="assetBanner">
+            <div class="ico"></div>
+            <div class="txt">
+              <b>未指定资产存放位置</b>
+              <span>产物将写入实例目录内部，重启或迁移后难以检索。请指定一个独立的资产文件夹。</span>
+            </div>
+            <button class="btn" id="pickFolder">选择文件夹</button>
+          </div>
+
+          <div class="card c3">
+            <div class="card-title">实例状态</div>
+            <div class="metric" id="ovInst">已停止</div>
+            <div class="metric-sub" id="ovInstSub">ComfyUI v0.3.58 · 独立环境</div>
+          </div>
+          <div class="card c3">
+            <div class="card-title">队列</div>
+            <div class="metric" id="ovQueue">0 <small>等待</small></div>
+            <div class="metric-sub">运行中 0 · 已完成 12</div>
+          </div>
+          <div class="card c3">
+            <div class="card-title">显存占用</div>
+            <div class="metric" id="ovVram">0.0 <small>GB</small></div>
+            <div class="metric-sub" id="ovVramSub">共 16.0 GB</div>
+            <div class="bar"><i id="ovVramBar" style="width:0%"></i></div>
+          </div>
+          <div class="card c3">
+            <div class="card-title">资产目录</div>
+            <div class="metric" id="ovAsset" style="font-size:17px;color:var(--danger)">未指定</div>
+            <div class="metric-sub">产物无处可寻</div>
+          </div>
+
+          <div class="card c7">
+            <div class="card-title"><span>GPU 实时负载</span><span class="more">近 60 秒</span></div>
+            <canvas class="chart" id="ovChart"></canvas>
+            <div class="chart-legend"><span><i></i>利用率</span><span><i class="thin"></i>显存</span></div>
+          </div>
+
+          <div class="card c5">
+            <div class="card-title"><span>最近产物</span><span class="more">尚未指定目录</span></div>
+            <div class="empty" style="padding:22px 0">
+              <canvas id="emptyArt" width="120" height="72"></canvas>
+              <p>指定资产文件夹后，这里会显示最近生成的作品与对应工作流。</p>
+            </div>
+          </div>
+
+          <div class="card flat c6">
+            <div class="card-title">环境自检</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div class="st ok"><i></i>显卡驱动 566.36 · 支持 CUDA 12.4</div>
+              <div class="st ok"><i></i>Python 3.12.7 · uv 托管运行时</div>
+              <div class="st ok"><i></i>torch 2.6.0+cu124 · 已验证可用</div>
+              <div class="st warn"><i></i>模型目录缺少 1 个 checkpoint（见「模型」页）</div>
+              <div class="st idle"><i></i>端口 8188 空闲</div>
+            </div>
+          </div>
+
+          <div class="card flat c6">
+            <div class="card-title">启动日志</div>
+            <div class="log" id="bootLog"><span class="t">[20:41:02]</span> <span class="ok">✓</span> 环境自检通过
+<span class="t">[20:41:03]</span> <span class="ok">✓</span> 前端资源已缓存（本地，不走 GitHub）
+<span class="t">[20:41:04]</span> <span class="ok">✓</span> 端口探测：8188 可用
+<span class="t">[20:41:04]</span> · 等待启动实例…</div>
+          </div>
+
+          <div class="sponsor-card" id="sponsorCard">
+            <canvas class="fruit" id="fruitArt" width="26" height="26"></canvas>
+            <div class="txt">
+              <b>Olivia 是开源项目</b>
+              <span>如果它帮你省下了折腾环境的时间，可以在爱发电支持后续开发。</span>
+            </div>
+            <a href="#" onclick="return false;">爱发电 →</a>
+            <button class="x" id="closeSponsor" title="关闭（可在设置中重新开启）">×</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-instances">
+        <div class="page-head"><h1>实例</h1><span class="hint">每个实例有独立的 venv 与端口</span></div>
+        <div class="grid">
+          <div class="card c6">
+            <div class="card-title"><span>ComfyUI · 默认实例</span><span class="pill run">运行中</span></div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">版本</span><span class="num">v0.3.58 (b7a1c92)</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">端口</span><span class="num">8188</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">torch</span><span class="num">2.6.0+cu124</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">磁盘占用</span><span class="num">11.4 GB</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">路径</span><span class="num" style="font-size:10.5px">…\instances\default\ComfyUI</span></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button class="btn" style="height:32px;font-size:12.5px">停止</button>
+              <button class="btn ghost" style="height:32px;font-size:12.5px">查看日志</button>
+              <button class="btn ghost" style="height:32px;font-size:12.5px;color:var(--danger)">删除</button>
+            </div>
+          </div>
+          <div class="card c6">
+            <div class="card-title"><span>新增实例</span><span class="more">可自定义版本</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div>
+                <div style="font-size:11.5px;color:var(--muted);margin-bottom:5px">ComfyUI 版本</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag">latest</span><span class="tag">v0.3.58</span><span class="tag">v0.3.40</span><span class="tag">自定义 tag</span></div>
+              </div>
+              <div>
+                <div style="font-size:11.5px;color:var(--muted);margin-bottom:5px">torch / CUDA</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag cu">cu124 · 推荐</span><span class="tag">cu121</span><span class="tag">cpu</span></div>
+              </div>
+              <button class="btn primary" style="align-self:flex-start;height:32px;font-size:12.5px">开始部署</button>
+            </div>
+          </div>
+          <div class="card flat c12">
+            <div class="card-title">部署进度（示例）</div>
+            <div style="font-size:12px;color:var(--ink2);display:flex;justify-content:space-between">
+              <span>安装 torch 2.6.0+cu124</span><span class="num">2.31 GB / 2.44 GB · 8.2 MB/s</span>
+            </div>
+            <div class="bar" style="height:4px"><i style="width:94.6%"></i></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px">预计剩余 16 秒 · 支持断点续传</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-queue">
+        <div class="page-head"><h1>队列</h1><span class="hint">节点级进度来自 ComfyUI 的 /ws 事件</span></div>
+        <div class="grid">
+          <div class="card c12">
+            <div class="card-title"><span>运行中</span><span class="pill run">1 个任务</span></div>
+            <table>
+              <thead><tr><th style="width:34%">工作流</th><th>当前节点</th><th>进度</th><th>耗时</th><th>峰值显存</th></tr></thead>
+              <tbody><tr>
+                <td>olive_portrait_v3.json</td><td class="mono">KSampler</td>
+                <td><div style="display:flex;align-items:center;gap:8px"><div class="bar" style="flex:1;margin:0"><i style="width:60%"></i></div><span class="mono" style="font-size:11px">12/20</span></div></td>
+                <td class="mono">00:41</td><td class="mono">9.8 GB</td>
+              </tr></tbody>
+            </table>
+          </div>
+          <div class="card c12">
+            <div class="card-title"><span>已完成</span><span class="more">今天 12 个</span></div>
+            <table>
+              <thead><tr><th style="width:34%">工作流</th><th>状态</th><th>耗时</th><th>峰值显存</th><th>产物</th></tr></thead>
+              <tbody>
+                <tr><td>olive_landscape.json</td><td><span class="pill">成功</span></td><td class="mono">01:12</td><td class="mono">8.4 GB</td><td class="mono" style="font-size:11px">00042_.png</td></tr>
+                <tr><td>character_sheet.json</td><td><span class="pill">成功</span></td><td class="mono">00:58</td><td class="mono">7.9 GB</td><td class="mono" style="font-size:11px">00041_.png</td></tr>
+                <tr><td>upscale_batch.json</td><td><span class="pill bad">OOM</span></td><td class="mono">00:23</td><td class="mono" style="color:var(--danger)">15.6 GB</td><td class="mono" style="font-size:11px">—</td></tr>
+              </tbody>
+            </table>
+            <div style="margin-top:14px;padding:12px 14px;border:1px solid var(--danger);border-radius:10px">
+              <div style="font-size:12.5px;color:var(--danger);font-weight:600;margin-bottom:3px">上一条任务显存不足</div>
+              <div style="font-size:11.5px;color:var(--ink2);margin-bottom:9px">upscale_batch.json 在 VAE Decode 阶段达到 15.6 GB，超过可用上限。</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn" style="height:30px;font-size:12px">降低分辨率</button>
+                <button class="btn" style="height:30px;font-size:12px">改用 fp8</button>
+                <button class="btn" style="height:30px;font-size:12px">加 --lowvram</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-hardware">
+        <div class="page-head"><h1>硬件</h1><span class="hint">500ms 采样 · NVML 直读</span></div>
+        <div class="grid">
+          <div class="card c3">
+            <div class="card-title">GPU 利用率</div>
+            <div class="metric" id="hwUtil">—<small>%</small></div>
+            <canvas class="chart" id="hwUtilChart" style="height:56px"></canvas>
+          </div>
+          <div class="card c3">
+            <div class="card-title">显存</div>
+            <div class="metric" id="hwVram">—<small>GB</small></div>
+            <div class="metric-sub" id="hwVramSub">共 16.0 GB</div>
+            <div class="bar"><i id="hwVramBar" style="width:0%"></i></div>
+          </div>
+          <div class="card c3">
+            <div class="card-title">温度</div>
+            <div class="metric" id="hwTemp">—<small>°C</small></div>
+            <div class="metric-sub" id="hwTempSub">风扇 —</div>
+          </div>
+          <div class="card c3">
+            <div class="card-title">功耗</div>
+            <div class="metric" id="hwPower">—<small>W</small></div>
+            <div class="metric-sub">上限 285 W</div>
+          </div>
+
+          <div class="card c12">
+            <div class="card-title"><span>工作流资源归因</span><span class="more">时间窗口归因 · 含模型常驻开销</span></div>
+            <table>
+              <thead><tr><th style="width:28%">工作流</th><th>峰值显存</th><th>平均利用率</th><th>峰值温度</th><th>耗时</th></tr></thead>
+              <tbody>
+                <tr><td>olive_portrait_v3.json <span class="pill run">进行中</span></td><td class="mono">9.8 GB</td><td class="mono">94%</td><td class="mono">68 °C</td><td class="mono">00:41</td></tr>
+                <tr><td>olive_landscape.json</td><td class="mono">8.4 GB</td><td class="mono">91%</td><td class="mono">66 °C</td><td class="mono">01:12</td></tr>
+                <tr><td>character_sheet.json</td><td class="mono">7.9 GB</td><td class="mono">88%</td><td class="mono">64 °C</td><td class="mono">00:58</td></tr>
+                <tr><td>upscale_batch.json</td><td class="mono" style="color:var(--danger)">15.6 GB</td><td class="mono">97%</td><td class="mono">72 °C</td><td class="mono">00:23</td></tr>
+              </tbody>
+            </table>
+            <p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7;max-width:640px">
+              峰值为该时间窗口内的整卡采样，包含模型常驻与上下文开销，不等于该工作流独占用量。需要精确计量请在设置中开启「进程隔离模式」。
+            </p>
+          </div>
+
+          <div class="card flat c6">
+            <div class="card-title">系统</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:12.5px">
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">CPU</span><span class="num" id="sysCpu">—</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">内存</span><span class="num" id="sysRam">—</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">显卡</span><span class="num">RTX 4070 Ti SUPER</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">驱动</span><span class="num">566.36</span></div>
+            </div>
+          </div>
+          <div class="card flat c6">
+            <div class="card-title">磁盘</div>
+            <div style="display:flex;flex-direction:column;gap:11px;font-size:12.5px">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted)">D: 实例与缓存</span><span class="num">412 GB 可用 / 1 TB</span></div>
+                <div class="bar" style="margin:0"><i style="width:59%"></i></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted)">E: 资产目录</span><span class="num">1.8 TB 可用 / 2 TB</span></div>
+                <div class="bar" style="margin:0"><i style="width:10%"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-assets">
+        <div class="page-head"><h1>资产</h1><span class="hint">产物统一存放，可反向追溯工作流</span></div>
+        <div class="grid">
+          <div class="card flat c12 hidden" id="assetSetBar">
+            <div class="card-title"><span>当前资产目录</span><span class="more" id="assetCount">0 个文件</span></div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <code class="num" style="font-size:12px;background:var(--bg2);padding:7px 11px;border-radius:8px;border:1px solid var(--line)" id="assetPath">E:\ComfyOutput</code>
+              <button class="btn ghost" style="height:30px;font-size:12px" id="changeFolder">更换目录</button>
+              <span class="st ok" style="font-size:11.5px"><i></i>监听中</span>
+            </div>
+          </div>
+          <div class="empty" id="assetEmpty">
+            <canvas id="assetEmptyArt" width="180" height="120"></canvas>
+            <h3>还没有指定资产存放位置</h3>
+            <p>未指定时，产物只会留在实例目录内部。重装、迁移或清理缓存后，这些文件会很难再被找到。<br>建议选择一个独立磁盘上的文件夹。</p>
+            <button class="btn primary" id="pickFolder2">选择文件夹</button>
+          </div>
+          <div class="card flat c12 hidden" id="assetListCard">
+            <div class="card-title"><span>最近产物</span><span class="more">按时间倒序 · 悬停查看来源</span></div>
+            <div class="thumbs" id="thumbs"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-models">
+        <div class="page-head"><h1>模型</h1><span class="hint">扫描 models 目录，标记缺失依赖</span></div>
+        <div class="grid">
+          <div class="card c12">
+            <div class="card-title"><span>checkpoints</span><span class="more">3 个 · 12.4 GB</span></div>
+            <table>
+              <thead><tr><th style="width:44%">文件名</th><th>大小</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td class="mono" style="font-size:11.5px">sd_xl_base_1.0.safetensors</td><td class="mono">6.5 GB</td><td><span class="pill run">可用</span></td></tr>
+                <tr><td class="mono" style="font-size:11.5px">flux1-dev-fp8.safetensors</td><td class="mono">11.9 GB</td><td><span class="pill run">可用</span></td></tr>
+                <tr><td class="mono" style="font-size:11.5px">olive_style_v2.safetensors</td><td class="mono">2.1 GB</td><td><span class="pill bad">缺失</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card flat c12">
+            <div class="card-title">缺失依赖</div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+              <div style="flex:1;min-width:220px">
+                <div style="font-size:12.5px;margin-bottom:2px"><code class="num" style="font-size:11.5px">olive_style_v2.safetensors</code></div>
+                <div style="font-size:11.5px;color:var(--muted)">被 2 个工作流引用：olive_portrait_v3、olive_landscape</div>
+              </div>
+              <button class="btn" style="height:32px;font-size:12.5px">从 HF 镜像下载</button>
+              <button class="btn ghost" style="height:32px;font-size:12.5px">手动指定路径</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-settings">
+        <div class="page-head"><h1>设置</h1><span class="hint">所有镜像源均可切回官方</span></div>
+        <div class="grid">
+          <div class="card c6">
+            <div class="card-title">外观</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px" id="themeList"></div>
+          </div>
+          <div class="card c6">
+            <div class="card-title">下载源</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span>PyPI 镜像</span><span class="tag">清华 TUNA</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span>ComfyUI 仓库</span><span class="tag">cnb.cool 镜像</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span>模型源</span><span class="tag">hf-mirror.com</span></div>
+              <button class="btn ghost" style="align-self:flex-start;height:30px;font-size:12px;margin-top:4px">切回官方源</button>
+            </div>
+          </div>
+          <div class="card c6">
+            <div class="card-title">监控</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span>硬件采样间隔</span><span class="tag">500 ms</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span>进程隔离模式</span><span class="tag">关闭（实验）</span></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><span>显示赞助位</span><span class="tag" id="sponsorToggleTag">开启</span></div>
+              <button class="btn ghost" style="align-self:flex-start;height:30px;font-size:12px;margin-top:4px" id="reopenSponsor">重新显示赞助卡</button>
+            </div>
+          </div>
+          <div class="card flat c6">
+            <div class="card-title">关于</div>
+            <p style="font-size:12px;color:var(--ink2);line-height:1.8">
+              Olivia ComfyUI 启动器 · v0.1.0-m1（视觉原型）<br>
+              本文件为单文件原型，数据全部为模拟值。<br>
+              开源协议 GPL-3.0 · 非 ComfyUI 官方产品
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const THEMES = {
+  graphite: {
+    label:'石墨靛', note:'暗色 · 推荐', sw:'#7C8CFF',
+    t:{ bg0:'#0B0C10', bg1:'#13151B', bg2:'#1B1E27', line:'#262A35',
+        ink:'#E8EAF0', ink2:'#A2A8B8', muted:'#7C8398',
+        accent:'#7C8CFF', accent2:'#4F6BED',
+        ok:'#3FBF8F', warn:'#E0A94A', danger:'#E2574C', info:'#5FD3C4',
+        plate:'#1B1E27', plateLine:'rgba(255,255,255,.06)', onAccent:'#FFFFFF' }
+  },
+  amber: {
+    label:'暗房琥珀', note:'暖暗 · 创作感', sw:'#E8A33D',
+    t:{ bg0:'#121110', bg1:'#1A1815', bg2:'#241F1A', line:'#332C25',
+        ink:'#F2EDE4', ink2:'#B5AA99', muted:'#8B7F6E',
+        accent:'#E8A33D', accent2:'#C9861F',
+        ok:'#7FB069', warn:'#E8A33D', danger:'#D9614C', info:'#C97B5A',
+        plate:'#241F1A', plateLine:'rgba(255,255,255,.07)', onAccent:'#1A1815' }
+  },
+  porcelain: {
+    label:'瓷白朱砂', note:'亮色 · 编辑感', sw:'#D93A2B',
+    t:{ bg0:'#F7F7F5', bg1:'#FFFFFF', bg2:'#EFEFEC', line:'#E0E1DD',
+        ink:'#17181A', ink2:'#55585E', muted:'#85888F',
+        accent:'#D93A2B', accent2:'#B32A1D',
+        ok:'#1F8A5F', warn:'#A9741A', danger:'#C8352A', info:'#3A6EA5',
+        plate:'#EDEDEA', plateLine:'rgba(0,0,0,.07)', onAccent:'#FFFFFF' }
+  },
+  cyan: {
+    label:'深青仪表', note:'冷暗 · 硬件感', sw:'#35C4D7',
+    t:{ bg0:'#0A1416', bg1:'#102024', bg2:'#163036', line:'#1F4048',
+        ink:'#E2F1F2', ink2:'#96B4B8', muted:'#6B8F94',
+        accent:'#35C4D7', accent2:'#1A93A6',
+        ok:'#4FD18B', warn:'#E3B04B', danger:'#E2604F', info:'#7FD4E8',
+        plate:'#163036', plateLine:'rgba(255,255,255,.07)', onAccent:'#0A1416' }
+  }
+};
+
+let currentTheme = 'graphite';
+const cssVarMap = {
+  bg0:'--bg0', bg1:'--bg1', bg2:'--bg2', line:'--line',
+  ink:'--ink', ink2:'--ink2', muted:'--muted',
+  accent:'--accent', accent2:'--accent2',
+  ok:'--ok', warn:'--warn', danger:'--danger', info:'--info',
+  plate:'--plate', plateLine:'--plate-line', onAccent:'--on-accent'
+};
+
+let themeColorCache = null;
+
+function applyTheme(key, persist){
+  const th = THEMES[key];
+  if(!th) return;
+  currentTheme = key;
+  const root = document.documentElement;
+  for(const [k,v] of Object.entries(th.t)) root.style.setProperty(cssVarMap[k], v);
+  document.querySelectorAll('.btn.primary').forEach(b=>{ b.style.color = th.t.onAccent; });
+  if(persist !== false){ try{ localStorage.setItem('olivia.theme', key); }catch(e){} }
+  document.querySelectorAll('#themeSwitch button').forEach(b=>{
+    b.setAttribute('aria-pressed', b.dataset.theme === key ? 'true' : 'false');
+  });
+  document.querySelectorAll('#themeList button').forEach(b=>{
+    b.setAttribute('aria-pressed', b.dataset.theme === key ? 'true' : 'false');
+  });
+  themeColorCache = null;
+  if(splashActive && cssSize){ drawTree(); }
+  if(appActive){ redrawAll(); }
+}
+
+function themeColors(){
+  if(!themeColorCache) themeColorCache = THEMES[currentTheme].t;
+  return themeColorCache;
+}
+
+function hexToRgba(hex, a){
+  const h = hex.replace('#','');
+  const n = parseInt(h.length===3 ? h.split('').map(c=>c+c).join('') : h, 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const clamp = (v,a,b)=>v<a?a:v>b?b:v;
+const lerp = (a,b,t)=>a+(b-a)*t;
+const easeOutCubic = t => 1 - Math.pow(1-t,3);
+
+const SAMPLE = 720, GRID = 96, SEG = 48;
+
+function drawOliveTree(ctx, S){
+  const rnd = mulberry32(20261102);
+  ctx.fillStyle = '#000'; ctx.fillRect(0,0,S,S);
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#fff';
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const cx = S*0.5, tips = [];
+
+  function taper(p0,p1,p2,p3,w0,w1,steps){
+    const q=(t)=>{ const mt=1-t; return {
+      x: mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x,
+      y: mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y }; };
+    for(let i=0;i<steps;i++){
+      const t0=i/steps, t1=(i+1)/steps;
+      const a=q(t0), b=q(t1);
+      ctx.lineWidth = lerp(w0,w1,(t0+t1)/2);
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    }
+  }
+  const forkY = S*0.60;
+  taper({x:cx-18,y:S*0.98},{x:cx-36,y:S*0.84},{x:cx+22,y:S*0.74},{x:cx-8,y:forkY}, 64, 36, 32);
+
+  function branch(x,y,ang,len,w,depth){
+    if(depth<=0 || len<13 || w<1.6) return;
+    const ex = x + Math.cos(ang)*len;
+    const ey = y + Math.sin(ang)*len;
+    const mx = x + Math.cos(ang)*len*0.5 + (rnd()-0.5)*len*0.22;
+    const my = y + Math.sin(ang)*len*0.5 + (rnd()-0.5)*len*0.22;
+    ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.quadraticCurveTo(mx,my,ex,ey); ctx.stroke();
+    if(depth<=2) tips.push({x:ex,y:ey,r:len});
+    for(let i=0;i<2;i++){
+      const spread = (i===0 ? -1 : 1)*(0.30+rnd()*0.26);
+      let na = ang+spread+(rnd()-0.5)*0.18;
+      na = clamp(na, -Math.PI+0.18, -0.18);
+      branch(ex,ey, na, len*(0.66+rnd()*0.14), w*0.62, depth-1);
+    }
+  }
+  for(let i=0;i<5;i++){
+    const a = -Math.PI/2 + (i-2)*0.44 + (rnd()-0.5)*0.10;
+    branch(cx-8, forkY, a, S*0.155, 20, 5);
+  }
+
+  const canopyCy = S*0.345, canopyRx = S*0.315, canopyRy = S*0.235;
+  function canopyMask(nx, ny){
+    const base = Math.max(0, 1 - nx*nx/0.92 - ny*ny);
+    if(ny > 0.25) return base * Math.max(0, 1 - (ny-0.25)*1.9);
+    return base;
+  }
+  for(const t of tips){
+    const lobes = 2 + Math.floor(rnd()*2);
+    for(let l=0;l<lobes;l++){
+      const la = rnd()*Math.PI*2, ld = rnd()*t.r*0.5;
+      const lx = t.x + Math.cos(la)*ld, ly = t.y + Math.sin(la)*ld*0.85;
+      const blobs = 6 + Math.floor(rnd()*7);
+      const spreadR = S*(0.030+rnd()*0.026);
+      for(let i=0;i<blobs;i++){
+        const a = rnd()*Math.PI*2, d = Math.sqrt(rnd())*spreadR;
+        const px = lx + Math.cos(a)*d, py = ly + Math.sin(a)*d*0.82;
+        if(canopyMask((px-cx)/canopyRx, (py-canopyCy)/canopyRy) < 0.08) continue;
+        const r = S*0.011 + rnd()*S*0.014;
+        ctx.beginPath();
+        ctx.ellipse(px, py, r, r*(0.66+rnd()*0.34), rnd()*Math.PI, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+  ctx.fillStyle = '#000';
+  for(let i=0;i<14;i++){
+    const a = rnd()*Math.PI*2, d = Math.sqrt(rnd());
+    const px = cx + Math.cos(a)*d*S*0.24, py = canopyCy + Math.sin(a)*d*S*0.11;
+    const r = S*0.013 + rnd()*S*0.022;
+    ctx.beginPath(); ctx.ellipse(px,py,r,r*(0.5+rnd()*0.5),rnd()*Math.PI,0,Math.PI*2); ctx.fill();
+  }
+  ctx.beginPath(); ctx.ellipse(cx-S*0.01, S*0.455, S*0.070, S*0.038, 0, 0, Math.PI*2); ctx.fill();
+}
+
+function sampleTree(){
+  const off = document.createElement('canvas');
+  off.width = SAMPLE; off.height = SAMPLE;
+  const octx = off.getContext('2d', { willReadFrequently:true });
+  drawOliveTree(octx, SAMPLE);
+  const img = octx.getImageData(0,0,SAMPLE,SAMPLE).data;
+  const lum = new Float32Array(GRID*GRID);
+  const cell = SAMPLE / GRID, step = cell / 7;
+  for(let gy=0; gy<GRID; gy++){
+    for(let gx=0; gx<GRID; gx++){
+      let sum = 0;
+      const x0 = gx*cell, y0 = gy*cell;
+      for(let sy=0; sy<7; sy++) for(let sx=0; sx<7; sx++){
+        const px = Math.min(SAMPLE-1, (x0 + sx*step)|0);
+        const py = Math.min(SAMPLE-1, (y0 + sy*step)|0);
+        const idx = (py*SAMPLE + px)*4;
+        sum += (0.2126*img[idx] + 0.7152*img[idx+1] + 0.0722*img[idx+2]) / 255;
+      }
+      lum[gy*GRID+gx] = sum/49;
+    }
+  }
+  off.width = 0; off.height = 0;
+  return lum;
+}
+
+const NOISE_N = 128;
+const noiseGrid = (()=>{
+  let state = 7319;
+  const g = new Float32Array(NOISE_N*NOISE_N);
+  for(let i=0;i<g.length;i++){
+    state ^= state << 13; state ^= state >>> 17; state ^= state << 5; state |= 0;
+    g[i] = ((state >>> 0) / 4294967295) * 2 - 1;
+  }
+  return g;
+})();
+const smooth = t => t*t*(3-2*t);
+function noise2(x,y){
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const xf = smooth(x-xi), yf = smooth(y-yi);
+  const wrap = v => ((v % NOISE_N) + NOISE_N) % NOISE_N;
+  const x0=wrap(xi), x1=wrap(xi+1), y0=wrap(yi), y1=wrap(yi+1);
+  const a = noiseGrid[y0*NOISE_N+x0], b = noiseGrid[y0*NOISE_N+x1];
+  const c = noiseGrid[y1*NOISE_N+x0], d = noiseGrid[y1*NOISE_N+x1];
+  return lerp(lerp(a,b,xf), lerp(c,d,xf), yf);
+}
+
+const WIDTHS = [0.38, 1.12, 2.28, 3.80];
+const ALPHAS = [0.20, 0.55, 0.82, 1.00];
+const THRESH = [0.12, 0.42, 0.89];
+
+const treeCanvas = document.getElementById('tree');
+const tctx = treeCanvas.getContext('2d');
+const LUM = sampleTree();
+
+const NSEG = GRID * SEG;
+const offX = new Float32Array(NSEG), offY = new Float32Array(NSEG);
+const velX = new Float32Array(NSEG), velY = new Float32Array(NSEG);
+
+let progress = 0, frontier = 0, rafId = null, lastTs = 0, elapsed = 0, pulse = 0;
+let dpr = Math.min(window.devicePixelRatio || 1, 2);
+let cssSize = 0, cellSize = 0;
+let splashActive = true, appActive = false;
+
+function resizeTree(){
+  const rect = treeCanvas.getBoundingClientRect();
+  if(!rect.width) return;
+  cssSize = rect.width;
+  cellSize = cssSize / GRID;
+  treeCanvas.width  = Math.round(cssSize * dpr);
+  treeCanvas.height = Math.round(cssSize * dpr);
+  tctx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function impulseAt(px, py){
+  const radius = cssSize * 0.25, r2 = radius*radius;
+  for(let s=0; s<NSEG; s++){
+    const c = s % GRID, r = (s / GRID) | 0;
+    const sx = (c+0.5)*cellSize, sy = (r*2+1)*cellSize;
+    const dx = sx-px, dy = sy-py, d2 = dx*dx + dy*dy;
+    if(d2 > r2) continue;
+    const d = Math.sqrt(d2) || 1;
+    const inf = Math.max(0, 1 - d/radius);
+    const force = inf*inf * pulse * 25;
+    offX[s] = (dx/d) * force;
+    offY[s] = (dy/d) * force * 0.58;
+    velX[s] = 0; velY[s] = 0;
+  }
+}
+
+function stepSprings(dt){
+  const k = 145, c = 19;
+  for(let s=0; s<NSEG; s++){
+    if(offX[s]===0 && offY[s]===0 && velX[s]===0 && velY[s]===0) continue;
+    velX[s] += (-k*offX[s] - c*velX[s])*dt; offX[s] += velX[s]*dt;
+    velY[s] += (-k*offY[s] - c*velY[s])*dt; offY[s] += velY[s]*dt;
+    if(Math.abs(offX[s])<0.01 && Math.abs(velX[s])<0.01){ offX[s]=0; velX[s]=0; }
+    if(Math.abs(offY[s])<0.01 && Math.abs(velY[s])<0.01){ offY[s]=0; velY[s]=0; }
+  }
+}
+
+function drawTree(){
+  if(!cssSize) return;
+  const th = themeColors();
+  tctx.clearRect(0,0,cssSize,cssSize);
+
+  const paths = [new Path2D(), new Path2D(), new Path2D(), new Path2D()];
+  const gap = 0.7;
+
+  for(let r=0; r<SEG; r++){
+    if(r >= frontier) break;
+    for(let c=0; c<GRID; c++){
+      const s = r*GRID + c;
+      let L = (LUM[(r*2)*GRID + c] + LUM[(r*2+1)*GRID + c]) / 2;
+      const n = noise2(c*0.15 + 3, r*0.16 - elapsed*0.17);
+      L = clamp(L*0.94 + n*0.12*(0.25 + L*0.75), 0, 1);
+
+      let lvl;
+      if(L < THRESH[0]) continue;
+      else if(L < THRESH[1]) lvl = 1;
+      else if(L < THRESH[2]) lvl = 2;
+      else lvl = 3;
+
+      const x = (c+0.5)*cellSize + offX[s];
+      paths[lvl].moveTo(x, (r*2)*cellSize + gap*0.5 + offY[s]);
+      paths[lvl].lineTo(x, (r*2+2)*cellSize - gap*0.5 + offY[s]);
+    }
+  }
+
+  tctx.lineCap = 'butt';
+  for(let i=0;i<4;i++){
+    tctx.globalAlpha = ALPHAS[i];
+    tctx.lineWidth = WIDTHS[i] * (cellSize/5.25);
+    tctx.strokeStyle = th.accent;
+    tctx.stroke(paths[i]);
+  }
+  tctx.globalAlpha = 1;
+
+  if(progress > 0.72){
+    const k = clamp((progress-0.72)/0.28, 0, 1);
+    const fr = mulberry32(777);
+    tctx.fillStyle = th.warn;
+    tctx.globalAlpha = k;
+    for(let i=0;i<7;i++){
+      const ang = fr()*Math.PI*2, d = Math.sqrt(fr());
+      tctx.beginPath();
+      tctx.arc((0.5 + Math.cos(ang)*d*0.30)*cssSize,
+               (0.33 + Math.sin(ang)*d*0.17)*cssSize, 2.5, 0, Math.PI*2);
+      tctx.fill();
+    }
+    tctx.globalAlpha = 1;
+  }
+}
+
+function loop(ts){
+  if(!lastTs) lastTs = ts;
+  let dt = (ts - lastTs)/1000;
+  lastTs = ts;
+  dt = Math.min(dt, 1/30);
+  elapsed += dt;
+  pulse *= Math.exp(-dt*5.5);
+  stepSprings(dt);
+  drawTree();
+  rafId = requestAnimationFrame(loop);
+}
+
+let lastPx = -1e9, lastPy = -1e9;
+function onPointer(e){
+  const rect = treeCanvas.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  const dx = px-lastPx, dy = py-lastPy;
+  if(dx*dx+dy*dy > 2.25){ pulse = 1; impulseAt(px, py); lastPx = px; lastPy = py; }
+}
+treeCanvas.addEventListener('pointermove', onPointer);
+treeCanvas.addEventListener('pointerdown', onPointer);
+treeCanvas.addEventListener('pointerleave', ()=>{ lastPx=-1e9; lastPy=-1e9; });
+
+const STAGES = [
+  { t:'正在解析运行环境',      w:0.10 },
+  { t:'校验 CUDA 与显卡驱动',  w:0.28 },
+  { t:'载入 ComfyUI 实例',     w:0.52 },
+  { t:'检查资产目录与模型',    w:0.74 },
+  { t:'连接本地服务',          w:0.92 },
+  { t:'准备就绪',              w:1.00 }
+];
+const stageEl = document.getElementById('stage');
+const pctEl   = document.getElementById('pct');
+const fillEl  = document.getElementById('fill');
+
+(function buildTicks(){
+  const track = document.getElementById('track');
+  [0.25,0.5,0.75,1].forEach(p=>{
+    const d = document.createElement('div');
+    d.className = 'tick'; d.style.left = (p*100)+'%';
+    track.appendChild(d);
+  });
+})();
+
+let stageIdx = 0;
+function advanceStage(){
+  if(stageIdx >= STAGES.length){ finishSplash(); return; }
+  const st = STAGES[stageIdx];
+  stageEl.textContent = st.t;
+  progress = st.w;
+  frontier = easeOutCubic(progress) * (SEG + 2);
+  pctEl.textContent = Math.round(progress*100) + '%';
+  fillEl.style.width = (progress*100) + '%';
+  document.querySelectorAll('.track .tick').forEach((d,i)=>{
+    d.classList.toggle('on', progress >= [0.25,0.5,0.75,1][i]);
+  });
+  stageIdx++;
+  if(stageIdx < STAGES.length) setTimeout(advanceStage, 620 + Math.random()*420);
+  else setTimeout(finishSplash, 420);
+}
+
+let finished = false;
+function finishSplash(){
+  if(finished) return;
+  finished = true;
+  progress = 1; frontier = SEG + 2;
+  pctEl.textContent = '100%'; fillEl.style.width = '100%';
+  document.querySelectorAll('.track .tick').forEach(d=>d.classList.add('on'));
+
+  const splash = document.getElementById('splash');
+  const app = document.getElementById('app');
+  splash.classList.add('out');
+  app.classList.add('in');
+  app.setAttribute('aria-hidden','false');
+
+  setTimeout(()=>{
+    splash.classList.add('hidden');
+    splashActive = false;
+    if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
+    treeCanvas.width = 0; treeCanvas.height = 0;
+    startApp();
+  }, 950);
+}
+document.getElementById('skip').addEventListener('click', finishSplash);
+
+window.addEventListener('resize', ()=>{ dpr = Math.min(window.devicePixelRatio||1,2); resizeTree(); });
+
+(function buildThemeSwitch(){
+  const sw = document.getElementById('themeSwitch');
+  const list = document.getElementById('themeList');
+  for(const [key, th] of Object.entries(THEMES)){
+    const b = document.createElement('button');
+    b.dataset.theme = key;
+    b.innerHTML = `<span class="sw" style="background:${th.sw}"></span>${th.label}`;
+    b.setAttribute('aria-pressed','false');
+    b.addEventListener('click', ()=>applyTheme(key));
+    sw.appendChild(b);
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px';
+    const left = document.createElement('div');
+    left.innerHTML = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${th.sw};margin-right:7px"></span>${th.label} <span style="color:var(--muted);font-size:11px">${th.note}</span>`;
+    const use = document.createElement('button');
+    use.dataset.theme = key;
+    use.className = 'btn ghost';
+    use.style.cssText = 'height:26px;font-size:11.5px;padding:0 12px';
+    use.textContent = '使用';
+    use.addEventListener('click', ()=>applyTheme(key));
+    row.appendChild(left); row.appendChild(use);
+    list.appendChild(row);
+  }
+})();
+
+let savedTheme = null;
+try{ savedTheme = localStorage.getItem('olivia.theme'); }catch(e){}
+applyTheme(savedTheme && THEMES[savedTheme] ? savedTheme : 'graphite', false);
+
+resizeTree();
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+if(reducedMotion.matches){
+  progress = 1; frontier = SEG + 2;
+  drawTree();
+  document.getElementById('splash').style.transition = 'opacity 300ms ease-out';
+  setTimeout(finishSplash, 900);
+} else {
+  rafId = requestAnimationFrame(loop);
+  setTimeout(advanceStage, 320);
+}
+
+function startApp(){
+  appActive = true;
+  initNav(); initClock(); initHardware(); initAssets(); initMisc();
+}
+
+function initNav(){
+  const nav = document.getElementById('nav');
+  const pages = {
+    overview:'page-overview', instances:'page-instances', queue:'page-queue',
+    hardware:'page-hardware', assets:'page-assets', models:'page-models', settings:'page-settings'
+  };
+  function go(key){
+    nav.querySelectorAll('button').forEach(b=>{
+      b.setAttribute('aria-current', b.dataset.page===key ? 'page' : 'false');
+    });
+    Object.entries(pages).forEach(([k,id])=>{
+      document.getElementById(id).classList.toggle('active', k===key);
+    });
+    document.getElementById('content').scrollTop = 0;
+    redrawAll();
+  }
+  nav.addEventListener('click', e=>{
+    const b = e.target.closest('button[data-page]');
+    if(b) go(b.dataset.page);
+  });
+  window.addEventListener('keydown', e=>{
+    if(e.target.tagName === 'INPUT') return;
+    const n = parseInt(e.key,10);
+    if(n>=1 && n<=7) go(Object.keys(pages)[n-1]);
+  });
+  window.__go = go;
+}
+
+function initClock(){
+  const el = document.getElementById('clock');
+  const tick = ()=>{
+    const d = new Date();
+    el.textContent = [d.getHours(),d.getMinutes(),d.getSeconds()]
+      .map(v=>String(v).padStart(2,'0')).join(':');
+  };
+  tick(); setInterval(tick, 1000);
+}
+
+const HIST = 120;
+const utilHist = new Array(HIST).fill(0);
+const vramHist = new Array(HIST).fill(0);
+let running = false;
+
+function drawChart(canvas, a, b, opts){
+  if(!canvas) return;
+  const d2 = Math.min(window.devicePixelRatio||1, 2);
+  const rect = canvas.getBoundingClientRect();
+  if(!rect.width) return;
+  canvas.width = Math.round(rect.width*d2);
+  canvas.height = Math.round(rect.height*d2);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(d2,0,0,d2,0,0);
+  const W = rect.width, H = rect.height;
+  const th = themeColors();
+  ctx.clearRect(0,0,W,H);
+
+  ctx.strokeStyle = th.line; ctx.lineWidth = 1.12;
+  ctx.beginPath(); ctx.moveTo(0,H-0.5); ctx.lineTo(W,H-0.5); ctx.stroke();
+
+  function line(arr, color, width, fill){
+    const n = arr.length;
+    const path = new Path2D();
+    for(let i=0;i<n;i++){
+      const x = (i/(n-1))*W;
+      const y = H - (arr[i]/100)*(H-6) - 3;
+      if(i===0) path.moveTo(x,y); else path.lineTo(x,y);
+    }
+    if(fill){
+      const g = ctx.createLinearGradient(0,0,0,H);
+      g.addColorStop(0, hexToRgba(th.accent, .20));
+      g.addColorStop(1, hexToRgba(th.accent, 0));
+      ctx.fillStyle = g;
+      const fp = new Path2D(path);
+      fp.lineTo(W,H); fp.lineTo(0,H); fp.closePath();
+      ctx.fill(fp);
+    }
+    ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = 'round';
+    ctx.stroke(path);
+  }
+  if(opts && opts.thin) line(b, th.info, 1.12, false);
+  line(a, th.accent, 2.28, true);
+}
+
+function initHardware(){
+  const ovChart = document.getElementById('ovChart');
+  const utilChart = document.getElementById('hwUtilChart');
+
+  function pushSample(){
+    if(!running){ utilHist.push(0); vramHist.push(0); }
+    else {
+      const u = 88 + Math.sin(Date.now()/900)*7 + (Math.random()-0.5)*6;
+      const v = 58 + Math.sin(Date.now()/1700)*3 + (Math.random()-0.5)*2;
+      utilHist.push(clamp(u,0,100)); vramHist.push(clamp(v,0,100));
+    }
+    if(utilHist.length > HIST) utilHist.shift();
+    if(vramHist.length > HIST) vramHist.shift();
+
+    drawChart(ovChart, utilHist, vramHist, {thin:true});
+    drawChart(utilChart, utilHist, null, {});
+
+    const last = utilHist[utilHist.length-1];
+    const vLast = vramHist[vramHist.length-1];
+    const vramGB = (vLast/100*16).toFixed(1);
+
+    document.getElementById('hwUtil').innerHTML = running ? Math.round(last)+'<small>%</small>' : '—<small>%</small>';
+    document.getElementById('hwVram').innerHTML = running ? vramGB+'<small>GB</small>' : '—<small>GB</small>';
+    document.getElementById('hwVramBar').style.width = (running? vLast : 0)+'%';
+    const temp = running ? Math.round(58 + last*0.12) : null;
+    document.getElementById('hwTemp').innerHTML = temp ? temp+'<small>°C</small>' : '—<small>°C</small>';
+    document.getElementById('hwTempSub').textContent = temp ? '风扇 ' + Math.round(52 + last*0.2) + '%' : '风扇 —';
+    document.getElementById('hwPower').innerHTML = running ? Math.round(120+last*1.4)+'<small>W</small>' : '—<small>W</small>';
+
+    document.getElementById('ovVram').innerHTML = running ? vramGB+' <small>GB</small>' : '0.0 <small>GB</small>';
+    document.getElementById('ovVramBar').style.width = (running? vLast : 0)+'%';
+  }
+
+  pushSample();
+  setInterval(pushSample, 1000);
+  setInterval(()=>{
+    if(!running) return;
+    document.getElementById('sysCpu').textContent = Math.round(18+Math.random()*14)+' %';
+    document.getElementById('sysRam').textContent = (14.2+Math.random()*2).toFixed(1)+' GB / 32 GB';
+  }, 1500);
+
+  window.__setRunning = (v)=>{
+    running = v;
+    document.getElementById('runDot').classList.toggle('on', v);
+    document.getElementById('powerBtn').textContent = v ? '停止' : '启动';
+    document.getElementById('ovInst').textContent = v ? '运行中' : '已停止';
+    document.getElementById('ovInstSub').textContent = v
+      ? 'ComfyUI v0.3.58 · 端口 8188' : 'ComfyUI v0.3.58 · 独立环境';
+    document.getElementById('ovQueue').innerHTML = v ? '1 <small>等待</small>' : '0 <small>等待</small>';
+  };
+}
+
+function redrawAll(){
+  drawChart(document.getElementById('ovChart'), utilHist, vramHist, {thin:true});
+  drawChart(document.getElementById('hwUtilChart'), utilHist, null, {});
+  const ea = document.getElementById('emptyArt');
+  if(ea) paintMini(ea.getContext('2d'), 120, 72, 42);
+  const aa = document.getElementById('assetEmptyArt');
+  if(aa) paintMini(aa.getContext('2d'), 180, 120, 91);
+  const fa = document.getElementById('fruitArt');
+  if(fa) paintFruit(fa.getContext('2d'));
+  const wrap = document.getElementById('thumbs');
+  if(wrap && wrap.dataset.built){
+    wrap.innerHTML = ''; wrap.dataset.built = '';
+    buildThumbs();
+  }
+}
+
+let assetFolder = null;
+function initAssets(){
+  const banner = document.getElementById('assetBanner');
+  const empty = document.getElementById('assetEmpty');
+  const listCard = document.getElementById('assetListCard');
+  const setBar = document.getElementById('assetSetBar');
+
+  function applyFolder(path){
+    assetFolder = path;
+    banner.classList.add('hidden');
+    empty.classList.add('hidden');
+    listCard.classList.remove('hidden');
+    setBar.classList.remove('hidden');
+    document.getElementById('assetPath').textContent = path;
+    const ovAsset = document.getElementById('ovAsset');
+    ovAsset.textContent = '已指定';
+    ovAsset.style.color = 'var(--ok)';
+    ovAsset.style.fontSize = '30px';
+    ovAsset.nextElementSibling.textContent = path;
+    buildThumbs();
+  }
+  const pick = ()=>applyFolder('E:\\ComfyOutput');
+  document.getElementById('pickFolder').addEventListener('click', pick);
+  document.getElementById('pickFolder2').addEventListener('click', pick);
+  document.getElementById('changeFolder').addEventListener('click', ()=>applyFolder('F:\\AI\\ComfyOutput'));
+}
+
+function buildThumbs(){
+  const wrap = document.getElementById('thumbs');
+  if(wrap.dataset.built) return;
+  wrap.dataset.built = '1';
+  const names = ['00042_.png','00041_.png','00040_.png','00039_.png','00038_.png','00037_.png','00036_.png','00035_.png'];
+  const wfs = ['olive_landscape','character_sheet','olive_portrait','upscale_batch'];
+  for(let i=0;i<8;i++){
+    const d = document.createElement('div');
+    d.className = 'thumb';
+    const cv = document.createElement('canvas');
+    cv.width = 200; cv.height = 200;
+    paintAbstract(cv, 1000+i*37);
+    const cap = document.createElement('div');
+    cap.className = 'cap';
+    cap.textContent = names[i] + ' · ' + wfs[i%4];
+    d.appendChild(cv); d.appendChild(cap);
+    wrap.appendChild(d);
+  }
+  document.getElementById('assetCount').textContent = '128 个文件';
+}
+
+function paintAbstract(canvas, seed){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const rnd = mulberry32(seed);
+  const th = themeColors();
+  const bgs = [th.bg2, th.bg1, th.bg0];
+  ctx.fillStyle = bgs[Math.floor(rnd()*bgs.length)];
+  ctx.fillRect(0,0,W,H);
+
+  const N = 40, step = W/N;
+  const levels = [0.38,1.12,2.28,3.80];
+  const alphas = [0.18,0.42,0.7,1.0];
+  const inks = [th.accent, th.info, th.accent2, th.warn];
+
+  for(let c=0;c<N;c++){
+    const base = 0.35 + 0.65*Math.sin((c/N)*Math.PI*(1+rnd()*0.5)+rnd()*2);
+    const lvl = base<0.3?0:(base<0.6?1:(base<0.85?2:3));
+    ctx.globalAlpha = alphas[lvl];
+    ctx.strokeStyle = inks[Math.floor(rnd()*inks.length)];
+    ctx.lineWidth = levels[lvl];
+    const x = (c+0.5)*step;
+    ctx.beginPath();
+    ctx.moveTo(x, H*(0.15+rnd()*0.2));
+    ctx.lineTo(x, H*(0.7+rnd()*0.25));
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function paintMini(ctx, W, H, seed){
+  const rnd = mulberry32(seed);
+  const th = themeColors();
+  ctx.clearRect(0,0,W,H);
+  const cx = W/2, cy = H*0.72;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = th.muted;
+  ctx.lineWidth = 2.28;
+  ctx.beginPath(); ctx.moveTo(cx, cy+H*0.12);
+  ctx.quadraticCurveTo(cx+4, cy-H*0.1, cx, cy-H*0.34); ctx.stroke();
+  for(let i=0;i<6;i++){
+    const t = i/5;
+    const y = cy + H*0.06 - t*H*0.36;
+    const dir = i%2 ? 1 : -1;
+    ctx.lineWidth = i%3===0 ? 1.12 : 0.38;
+    ctx.strokeStyle = i%3===0 ? th.muted : th.line;
+    ctx.beginPath(); ctx.moveTo(cx, y);
+    ctx.quadraticCurveTo(cx+dir*(10+rnd()*5), y-5, cx+dir*(16+rnd()*7), y-1);
+    ctx.stroke();
+  }
+  ctx.fillStyle = th.warn;
+  ctx.beginPath(); ctx.arc(cx+3, cy-H*0.30, 2.5, 0, Math.PI*2); ctx.fill();
+}
+
+function paintFruit(ctx){
+  const th = themeColors();
+  ctx.clearRect(0,0,26,26);
+  ctx.strokeStyle = th.ok; ctx.lineWidth = 1.12;
+  ctx.beginPath(); ctx.moveTo(13,24); ctx.lineTo(13,14); ctx.stroke();
+  ctx.fillStyle = th.warn;
+  ctx.beginPath(); ctx.ellipse(13,11,7,8,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = th.info; ctx.lineWidth = 1.12;
+  ctx.beginPath(); ctx.moveTo(13,7); ctx.quadraticCurveTo(19,2,23,5); ctx.stroke();
+}
+
+function initMisc(){
+  document.getElementById('powerBtn').addEventListener('click', ()=>{
+    const next = !running;
+    window.__setRunning(next);
+    const log = document.getElementById('bootLog');
+    const d = new Date();
+    const ts = '[' + [d.getHours(),d.getMinutes(),d.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':') + ']';
+    log.innerHTML += `\n<span class="t">${ts}</span> ` + (next
+      ? '<span class="ok">✓</span> 实例已启动 · http://127.0.0.1:8188'
+      : '<span class="warn">·</span> 实例已停止');
+    log.scrollTop = log.scrollHeight;
+  });
+
+  document.getElementById('closeSponsor').addEventListener('click', ()=>{
+    document.getElementById('sponsorCard').classList.add('hidden');
+    document.getElementById('sponsorToggleTag').textContent = '关闭';
+  });
+  document.getElementById('reopenSponsor').addEventListener('click', ()=>{
+    document.getElementById('sponsorCard').classList.remove('hidden');
+    document.getElementById('sponsorToggleTag').textContent = '开启';
+  });
+
+  redrawAll();
+}
+</script>
+</body>
+</html>
