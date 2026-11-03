@@ -1,0 +1,13 @@
+/* 静态默认值 = THEMES.graphite，只为首帧不闪错色；运行时由 ThemeProvider 整体覆盖 */
+:root {
+  --bg0: #0B0C10; --bg1: #13151B; --bg2: #1B1E27; --line: #262A35;
+  --ink: #E8EAF0; --ink2: #A2A8B8; --muted: #7C8398;
+  --accent: #7C8CFF; --accent2: #4F6BED;
+  --ok: #3FBF8F; --warn: #E0A94A; --danger: #E2574C; --info: #5FD3C4;
+  --plate: #1B1E27; --plate-line: rgba(255, 255, 255, .06); --on-accent: #FFFFFF;
+
+  --r-card: 14px; --r-btn: 9px; --r-tag: 6px;
+  --font-display: Georgia, "Songti SC", "Noto Serif SC", "Source Han Serif SC", SimSun, serif;
+  --font-ui: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
