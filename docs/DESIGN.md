@@ -41,8 +41,10 @@
 - 注释（`--muted`）≥ 3:1，且仅用于 ≥ 11px 非关键文本
 - `--accent` 于 `--bg0` ≥ 3:1（用于图形/描边），accent 上的文字用 `--on-accent` ≥ 4.5:1
 - `--ok / --warn / --danger` 于 `--bg1` ≥ 3:1
+- `--on-accent` 于 `--accent2` ≥ 4.5:1（主按钮常态底就是 accent2，hover 不换底）
+- `::selection` 的文字色用 `--bg1`（于 accent ≥ 4.5:1）
 
-任何新主题必须在 PR 里附对比度计算结果，不达标不合并。
+任何新主题必须在 PR 里附对比度计算结果，不达标不合并。该检查由 `scripts/ci/check_contrast.py` 在 CI 自动执行，直接读原型的 THEMES 表算 WCAG 比值。
 
 ### 1.4 用色纪律
 
@@ -50,7 +52,19 @@
 - 状态色不挪用：绿色只表示"正常/运行中"，红色只表示"错误/OOM/未配置"，绝不用于选中态或品牌强调
 - 不使用渐变按钮、玻璃拟态、大面积模糊阴影
 - 图表最多两条曲线：accent（主）+ info（副），需要第三条时先质疑要不要
+- 主按钮 hover 只提亮描边并上移位移，**不换底色**——on-accent 文字落在变亮的 accent 上会跌破 4.5:1
 - 暗色主题下禁用纯黑 `#000` 与纯白 `#fff` 作大面积底/字（`--bg0` 接近但不等于黑）
+
+### 1.5 v2.1 修订（2026-11-03）
+
+四主题经对比度实测后微调四处，其余令牌不动：
+
+| 主题 | 令牌 | 旧值 → 新值 | 原因 |
+|---|---|---|---|
+| 暗房琥珀 | `--warn` | `#E8A33D` → `#E8C063` | 与 `--accent` 同值，启动树果实画在同色枝线上不可见，警告态也长得像品牌强调；偏柠黄后与 accent 拉开 1.5:1 明度差 |
+| 深青仪表 | `--info` | `#7FD4E8` → `#A9E4EF` | 与 `--accent` 明度几乎相同（1.24:1）且同色相，是该主题双曲线图最难读的原因；提亮后达 1.50:1，对齐石墨靛的信息层级（1.64:1） |
+| 全部 | 主按钮 hover | 换 accent 底 → 只提亮描边 + 位移 | 石墨靛白字落在 hover 的 accent 上仅 2.98:1，违反 §1.3；hover 语义改由描边与上移承担 |
+| 全部 | `::selection` 文字 | `--bg0` → `--bg1` | 瓷白朱砂下 bg0 于 accent 仅 4.33:1；bg1 全主题 ≥ 4.65:1 |
 
 ---
 
@@ -60,7 +74,7 @@
 
 | 角色 | 字体栈 | 用法 |
 |---|---|---|
-| 显示 | `Georgia, "Songti SC", "Noto Serif SC", serif` | 页面主标题、启动页 OLIVIA 字标 |
+| 显示 | `Georgia, "Songti SC", "Noto Serif SC", "Source Han Serif SC", SimSun, serif` | 页面主标题、启动页 OLIVIA 字标；SimSun 兜底 Windows（Songti SC 仅存在于 macOS） |
 | 界面 | `"Segoe UI", "Microsoft YaHei", system-ui, sans-serif` | 正文、按钮、表单 |
 | 数据 | `"Cascadia Mono", Consolas, monospace` | 显存、温度、PID、路径、坐标 |
 

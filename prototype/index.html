@@ -9,10 +9,10 @@
   --bg0:#0B0C10; --bg1:#13151B; --bg2:#1B1E27; --line:#262A35;
   --ink:#E8EAF0; --ink2:#A2A8B8; --muted:#7C8398;
   --accent:#7C8CFF; --accent2:#4F6BED;
-  --ok:#3FBF8F; --warn:#E0A94A; --danger:#E2574C; --info:#5FD3C4;
+  --ok:#3FBF8F; --warn:#E0A94A; --danger:#E2574C; --info:#5FD3C4; --on-accent:#FFFFFF;
   --plate:#1B1E27; --plate-line:rgba(255,255,255,.06);
   --r-card:14px; --r-btn:9px; --r-tag:6px;
-  --font-display:Georgia,"Songti SC","Noto Serif SC",serif;
+  --font-display:Georgia,"Songti SC","Noto Serif SC","Source Han Serif SC",SimSun,serif;
   --font-ui:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
   --font-mono:"Cascadia Mono",Consolas,"Courier New",monospace;
 }
@@ -24,7 +24,7 @@ body{
   -webkit-font-smoothing:antialiased; overflow:hidden;
   transition:background 400ms ease, color 400ms ease;
 }
-::selection{background:var(--accent);color:var(--bg0)}
+::selection{background:var(--accent);color:var(--bg1)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
@@ -92,8 +92,8 @@ button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;backgrou
 .btn{height:36px;padding:0 18px;border-radius:var(--r-btn);font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--bg1);color:var(--ink);transition:transform 300ms ease-out,border-color 200ms,background 200ms}
 .btn:hover{transform:translateY(-1px);border-color:var(--accent)}
 .btn:active{transform:translateY(0)}
-.btn.primary{background:var(--accent2);color:#fff;border-color:var(--accent2)}
-.btn.primary:hover{background:var(--accent);border-color:var(--accent)}
+.btn.primary{background:var(--accent2);color:var(--on-accent,#fff);border-color:var(--accent2)}
+/* hover 不换 accent 底：on-accent 文字落在变亮的 accent 上会跌破 4.5:1（DESIGN §1.3） */
 .btn.ghost{background:transparent}
 
 .content{flex:1;overflow-y:auto;padding:26px;scroll-behavior:smooth}
@@ -582,7 +582,7 @@ const THEMES = {
     t:{ bg0:'#121110', bg1:'#1A1815', bg2:'#241F1A', line:'#332C25',
         ink:'#F2EDE4', ink2:'#B5AA99', muted:'#8B7F6E',
         accent:'#E8A33D', accent2:'#C9861F',
-        ok:'#7FB069', warn:'#E8A33D', danger:'#D9614C', info:'#C97B5A',
+        ok:'#7FB069', warn:'#E8C063', danger:'#D9614C', info:'#C97B5A',
         plate:'#241F1A', plateLine:'rgba(255,255,255,.07)', onAccent:'#1A1815' }
   },
   porcelain: {
@@ -598,7 +598,7 @@ const THEMES = {
     t:{ bg0:'#0A1416', bg1:'#102024', bg2:'#163036', line:'#1F4048',
         ink:'#E2F1F2', ink2:'#96B4B8', muted:'#6B8F94',
         accent:'#35C4D7', accent2:'#1A93A6',
-        ok:'#4FD18B', warn:'#E3B04B', danger:'#E2604F', info:'#7FD4E8',
+        ok:'#4FD18B', warn:'#E3B04B', danger:'#E2604F', info:'#A9E4EF',
         plate:'#163036', plateLine:'rgba(255,255,255,.07)', onAccent:'#0A1416' }
   }
 };
