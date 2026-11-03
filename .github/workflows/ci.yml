@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 仓库出过一次 Markdown BOM 事故（fbc5327），此检查防复发
+      - name: 检查 Markdown 无 BOM
+        run: |
+          ! grep -rl $'\xEF\xBB\xBF' --include='*.md' .
+
+      - name: 检查文档内链
+        run: python scripts/ci/check_md_links.py
+
+      # DESIGN §1.3：不达标的主题不允许合并
+      - name: 主题对比度检查
+        run: python scripts/ci/check_contrast.py
