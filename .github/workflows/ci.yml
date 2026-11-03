@@ -15,10 +15,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      # 仓库出过一次 Markdown BOM 事故（fbc5327），此检查防复发
+      # 仓库出过一次 Markdown BOM 事故（fbc5327），此检查防复发。
+      # 用 git 追踪文件列表，避免扫到依赖目录
       - name: 检查 Markdown 无 BOM
         run: |
-          ! grep -rl $'\xEF\xBB\xBF' --include='*.md' .
+          ! git ls-files '*.md' | xargs grep -l $'\xEF\xBB\xBF'
 
       - name: 检查文档内链
         run: python scripts/ci/check_md_links.py

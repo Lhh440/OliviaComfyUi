@@ -14,13 +14,22 @@ ROOT = Path(__file__).resolve().parents[2]
 # [text](target) 与 ![alt](target)；目标里允许可选的标题
 LINK_RE = re.compile(r'!?\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
 SKIP_PREFIXES = ("http://", "https://", "mailto:", "#")
+# 依赖与产物里的 README 不属于本项目文档
+PRUNE_DIRS = {"node_modules", "dist", ".git", "coverage"}
+
+
+def iter_md(root: Path):
+    for path in sorted(root.rglob("*.md")):
+        if any(part in PRUNE_DIRS for part in path.relative_to(root).parts):
+            continue
+        yield path
 
 
 def main() -> int:
     broken: list[str] = []
     checked = 0
 
-    for md in sorted(ROOT.rglob("*.md")):
+    for md in iter_md(ROOT):
         rel_md = md.relative_to(ROOT).as_posix()
         for lineno, line in enumerate(md.read_text(encoding="utf-8").splitlines(), 1):
             for target in LINK_RE.findall(line):
