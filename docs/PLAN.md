@@ -80,12 +80,13 @@
 | PyPI | `UV_DEFAULT_INDEX=https://pypi.tuna.tsinghua.edu.cn/simple` | 阿里云 → 官方 |
 | torch | 清华/阿里 pytorch 源（`+cu124` 等索引） | `download.pytorch.org` |
 | 模型 | `HF_ENDPOINT=https://hf-mirror.com`、ModelScope | HF 官方 |
+| ComfyUI 前端包 | `comfyui-frontend-package` wheel（走 PyPI 镜像，与 §1.4 第 1 条同源） | ghproxy 前缀 → GitHub Releases |
 
 **实现要点**：镜像不是硬编码，是一张 `mirrors.json` 表（含测速结果），首次启动跑一次 200ms 的 HEAD 探测，自动选最快的，并允许用户手动锁定。**所有源必须可切回官方**——这是开源项目的基本礼貌，也是企业内网用户的前提。
 
 ### 1.4 三个必须提前知道的坑
 
-1. **`--front-end-version` 默认值是 `comfyanonymous/ComfyUI@latest`**，ComfyUI 启动时会去 GitHub Releases 拉前端包。国内网络下这会表现为"服务起来了但页面白屏"。→ 启动器必须显式传 `--front-end-root <本地目录>`，前端包由我们随 ComfyUI 版本一起缓存。这是"能不能开箱即用"的分水岭。
+1. **`--front-end-version` 默认值是 `comfyanonymous/ComfyUI@latest`**，ComfyUI 启动时会去 GitHub Releases 拉前端包。国内网络下这会表现为"服务起来了但页面白屏"。→ 启动器必须显式传 `--front-end-root <本地目录>`，前端包由我们随 ComfyUI 版本一起缓存：优先从 PyPI 镜像拉 `comfyui-frontend-package` wheel（TUNA 全量镜像 PyPI，见 §1.3），GitHub Releases 仅作回退。这是"能不能开箱即用"的分水岭。
 
 2. **`--output-directory` 已存在**，不用自己打补丁。但它只影响新产物，历史产物仍在实例目录 → 切换资产目录时要提示"是否迁移历史产物"。
 
@@ -242,4 +243,5 @@ ComfyUI 前端（`ComfyUI_frontend`）是十万行级的图编辑器：节点渲
 | ComfyUI 上游破坏性变更 | 启动器失效 | 锁版本 + CI 每日跑冒烟测试 + 参数白名单 |
 | 前端 HTML 结构变更导致注入失效 | 主题/布局错乱 | 特性检测 + 降级为原生外观，绝不白屏 |
 | `/api/*` 命名空间冲突 | 启动器接口被 ComfyUI 抢 | 路由优先级 + 集成测试 |
+| 未签名安装包被 SmartScreen / 杀软拦截 | 首次安装流失、更新中断 | README 公布 SHA256；FAQ 提供核对与放行指引；更新流程见 ADR-0009 |
 | 全自研编辑器范围失控 | 项目烂尾 | 双模式并存，M1 不碰编辑器核心 |

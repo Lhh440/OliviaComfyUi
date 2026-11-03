@@ -125,7 +125,7 @@ OliviaComfyUi/
 
 ## 参与贡献
 
-见 [CONTRIBUTING.md](CONTRIBUTING.md)。提交前请先读 [ADR](docs/ADR.md)，已拍板的架构决策请在 Issue 里讨论而不是直接改代码。
+见 [CONTRIBUTING.md](CONTRIBUTING.md)。提交前请先读 [ADR](docs/ADR.md)，已拍板的架构决策请在 Issue 里讨论而不是直接改代码。提交 Issue 请使用模板（Bug 请附环境自检报告）；CI 会自动检查文档 BOM、内链与主题对比度。
 
 ---
 
