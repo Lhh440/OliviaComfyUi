@@ -1,6 +1,7 @@
-"""校验 prototype/index.html 中四套主题的 WCAG 对比度（DESIGN §1.3）。
+"""校验四套主题的 WCAG 对比度（DESIGN §1.3）。
 
-直接从原型的 THEMES 表提取色值，避免另维护一份令牌副本导致漂移。
+令牌唯一来源是 packages/design/src/theme.ts（M1.0 起原型仅作设计存档）；
+脚本直接从源码字面量提取色值，避免另维护一份令牌副本导致漂移。
 阈值与 docs/DESIGN.md §1.3 一致；任何 FAIL 使脚本退出码为 1。
 用法：python scripts/ci/check_contrast.py（仓库根目录下执行）
 """
@@ -11,7 +12,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PROTOTYPE = ROOT / "prototype" / "index.html"
+# 首选真实令牌包；原型文件保留为历史回退（早于 M1.0 的仓库状态也能跑）
+SOURCES = [
+    ROOT / "packages" / "design" / "src" / "theme.ts",
+    ROOT / "prototype" / "index.html",
+]
 
 # DESIGN §1.3 + §1.5：前景/背景对与最低比值
 CHECKS: list[tuple[str, str, float]] = [
@@ -29,7 +34,7 @@ CHECKS: list[tuple[str, str, float]] = [
 
 TOKENS = {token for check in CHECKS for token in check[:2]}
 THEME_KEY_RE = re.compile(r"^  (\w+): \{$", re.M)
-HEX_RE = re.compile(r"(\w+):'(#[0-9A-Fa-f]{6})'")
+HEX_RE = re.compile(r"(\w+)\s*:\s*['\"](#[0-9A-Fa-f]{6})['\"]")
 
 
 def luminance(hex_color: str) -> float:
@@ -48,10 +53,13 @@ def ratio(fg: str, bg: str) -> float:
 
 
 def parse_themes() -> dict[str, dict[str, str]]:
-    text = PROTOTYPE.read_text(encoding="utf-8")
-    start = text.find("const THEMES = {")
+    source = next((p for p in SOURCES if p.exists()), None)
+    if source is None:
+        raise SystemExit(f"找不到令牌源：{[str(p) for p in SOURCES]}")
+    text = source.read_text(encoding="utf-8")
+    start = text.find("const THEMES")
     if start < 0:
-        raise SystemExit(f"未在 {PROTOTYPE} 找到 THEMES 定义")
+        raise SystemExit(f"未在 {source} 找到 THEMES 定义")
     body = text[start:]
     end = body.find("\n};")
     body = body[:end]
