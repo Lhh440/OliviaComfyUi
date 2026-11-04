@@ -1,0 +1,5 @@
+fastapi>=0.115
+uvicorn>=0.32
+psutil>=6.1
+# pynvml 包装包已废弃，官方包同样提供 pynvml 模块
+nvidia-ml-py>=12.0
