@@ -80,7 +80,7 @@ export function Splash({ leaving, onFinish }: { leaving: boolean; onFinish: () =
       <div className="splash-brand">
         <div className="mark">OLIVIA</div>
         <div className="sub">ComfyUI 启动器</div>
-        <div className="ver">v0.1.0-m1</div>
+        <div className="ver">v0.1.0a1</div>
       </div>
       <div className="splash-foot">
         <div>

@@ -11,13 +11,24 @@ import type {
   RegisterRequest,
 } from "./types";
 
-// 令牌注入路径（ADR-0004）：桌面端由壳注入 window.__OLIVIA_BOOT__；
-// web 开发期由 vite 代理读 core.json，并把令牌经 define 注入本常量。
+// 令牌注入路径（ADR-0004）：Tauri 壳与 Core 发行模式注入 window.__OLIVIA_BOOT__；
+// web 开发期由 vite 代理读 core.json，并把令牌经 define 注入本常量（仅 dev）。
 declare const __OLIVIA_CORE_TOKEN__: string | null;
 
+declare global {
+  interface Window {
+    __OLIVIA_BOOT__?: { token?: string | null };
+  }
+}
+
+function bootToken(): string | null {
+  return window.__OLIVIA_BOOT__?.token ?? __OLIVIA_CORE_TOKEN__ ?? null;
+}
+
 function authHeaders(extra?: HeadersInit): HeadersInit {
-  if (!__OLIVIA_CORE_TOKEN__) return extra ?? {};
-  return { Authorization: `Bearer ${__OLIVIA_CORE_TOKEN__}`, ...extra };
+  const token = bootToken();
+  if (!token) return extra ?? {};
+  return { Authorization: `Bearer ${token}`, ...extra };
 }
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -53,7 +64,8 @@ function post<T>(path: string, body?: unknown): Promise<T> {
 
 function wsHardwareUrl(): string {
   const proto = location.protocol === "https:" ? "wss" : "ws";
-  const q = __OLIVIA_CORE_TOKEN__ ? `?token=${encodeURIComponent(__OLIVIA_CORE_TOKEN__)}` : "";
+  const token = bootToken();
+  const q = token ? `?token=${encodeURIComponent(token)}` : "";
   return `${proto}://${location.host}/api/ws/hardware${q}`;
 }
 

@@ -26,7 +26,7 @@ export function Sidebar() {
           爱发电支持
         </a>
         <div className="ver-line">
-          <span>v0.1.0-m1</span>
+          <span>v0.1.0a1</span>
           <span>GPL-3.0</span>
         </div>
       </div>

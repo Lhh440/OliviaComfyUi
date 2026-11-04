@@ -68,7 +68,7 @@ export function SettingsPage() {
         <div className="card flat c6">
           <div className="card-title">关于</div>
           <p style={{ fontSize: 12, color: "var(--ink2)", lineHeight: 1.8 }}>
-            Olivia ComfyUI 启动器 · v0.1.0-m1.1a（M1.1a 最小可用启动器）
+            Olivia ComfyUI 启动器 · v0.1.0a1（M1.1a · alpha 发行）
             <br />
             数据全部来自本机 Olivia Core（127.0.0.1），不经过任何外部服务。
             <br />
