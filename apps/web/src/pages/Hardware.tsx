@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { core } from "../api/mock";
+import { core } from "../api/http";
 import type { AttributionRow, DiskInfo } from "../api/types";
 import { Chart } from "../components/Chart";
 import { ErrorCard, Loading, PageHead } from "../components/states";
@@ -64,7 +64,7 @@ export function HardwarePage() {
               <span className="unavailable">不可用</span>
             )}
           </div>
-          <div className="metric-sub">共 16.0 GB</div>
+          <div className="metric-sub">{sample ? (vramTotal != null ? `共 ${vramTotal.toFixed(1)} GB` : "总量不可用") : "—"}</div>
           <div className="bar">
             <i style={{ width: `${vramPct}%` }} />
           </div>
@@ -121,6 +121,9 @@ export function HardwarePage() {
             <ErrorCard message={error} onRetry={load} />
           ) : attr === null ? (
             <Loading />
+          ) : attr.length === 0 ? (
+            // 归因需要实例 /ws 事件流（M1.2）：真实空态而非示例表
+            <div className="loading">暂无归因数据。此功能将随 M1.2（实例事件流接入）提供。</div>
           ) : (
             <table>
               <thead>
@@ -157,7 +160,14 @@ export function HardwarePage() {
           <div className="card-title">系统</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 9, fontSize: "12.5px" }}>
             <KV label="CPU" value={sample?.system.cpuPercent != null ? `${Math.round(sample.system.cpuPercent)} %` : "不可用"} />
-            <KV label="内存" value={sample?.system.ramUsedGb != null ? `${sample.system.ramUsedGb.toFixed(1)} GB / 32 GB` : "不可用"} />
+            <KV
+              label="内存"
+              value={
+                sample?.system.ramUsedGb != null && sample.system.ramTotalGb != null
+                  ? `${sample.system.ramUsedGb.toFixed(1)} GB / ${sample.system.ramTotalGb.toFixed(1)} GB`
+                  : "不可用"
+              }
+            />
             <KV label="显卡" value={gpu?.name ?? "不可用"} />
             <KV label="驱动" value={gpu?.driver ?? "不可用"} />
           </div>

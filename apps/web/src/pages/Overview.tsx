@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BOOT_LOG, core } from "../api/mock";
+import { core } from "../api/http";
 import type { AssetThumb, CheckItem, LogLine } from "../api/types";
-import { FruitIcon, MiniTreeArt, AbstractThumb } from "../components/art";
+import { FruitIcon, MiniTreeArt, AbstractThumb, seedFromFile } from "../components/art";
+import { AssetPathInput } from "../components/AssetPathInput";
 import { Chart } from "../components/Chart";
 import { ErrorCard, Loading, PageHead } from "../components/states";
 import { readSponsorHidden, writeSponsorHidden } from "../storage";
@@ -11,11 +12,7 @@ interface OverviewData {
   checklist: CheckItem[];
   queueWaiting: number;
   doneCount: number;
-}
-
-function nowTs(): string {
-  const d = new Date();
-  return [d.getHours(), d.getMinutes(), d.getSeconds()].map((v) => String(v).padStart(2, "0")).join(":");
+  port: number | null;
 }
 
 export function OverviewPage() {
@@ -23,17 +20,19 @@ export function OverviewPage() {
   const [data, setData] = useState<OverviewData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [assets, setAssets] = useState<AssetThumb[] | null>(null);
-  const [log, setLog] = useState<LogLine[]>(BOOT_LOG);
+  const [logs, setLogs] = useState<LogLine[] | null>(null);
   const [sponsorHidden, setSponsorHidden] = useState(readSponsorHidden);
+  const logBoxRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(() => {
     setError(null);
-    Promise.all([core.getChecklist(), core.getQueue()])
-      .then(([checklist, queue]) =>
+    Promise.all([core.getChecklist(), core.getQueue(), core.getInstance()])
+      .then(([checklist, queue, instance]) =>
         setData({
           checklist,
           queueWaiting: queue.running.length,
-          doneCount: queue.done.length + 12,
+          doneCount: queue.done.length,
+          port: instance.port,
         }),
       )
       .catch((err: unknown) => setError(String(err)));
@@ -48,17 +47,26 @@ export function OverviewPage() {
     core.listAssets().then(setAssets).catch(() => setAssets([]));
   }, [assetFolder]);
 
-  const prevRunning = useRef(running);
+  // 启动日志 = Core 的实例环形缓冲；无实例时为空数组（空态，不是错误）
   useEffect(() => {
-    if (prevRunning.current === running) return;
-    prevRunning.current = running;
-    setLog((prev) => [
-      ...prev,
-      running
-        ? { ts: nowTs(), level: "ok" as const, text: "实例已启动 · http://127.0.0.1:8188" }
-        : { ts: nowTs(), level: "warn" as const, text: "实例已停止" },
-    ]);
-  }, [running]);
+    let alive = true;
+    const poll = () =>
+      core
+        .pollLogs()
+        .then((lines) => {
+          if (!alive) return;
+          setLogs(lines);
+          const box = logBoxRef.current;
+          if (box) box.scrollTop = box.scrollHeight;
+        })
+        .catch(() => {});
+    poll();
+    const id = window.setInterval(poll, 3000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
 
   const vramUsed = sample?.gpu.vramUsedGb;
   const vramTotal = sample?.gpu.vramTotalGb;
@@ -75,21 +83,21 @@ export function OverviewPage() {
               <b>未指定资产存放位置</b>
               <span>产物将写入实例目录内部，重启或迁移后难以检索。请指定一个独立的资产文件夹。</span>
             </div>
-            <button className="btn" onClick={() => setAssetFolder("E:\\ComfyOutput")}>选择文件夹</button>
+            <AssetPathInput current={null} onSave={(p) => setAssetFolder(p)} />
           </div>
         )}
 
         <div className="card c3">
           <div className="card-title">实例状态</div>
           <div className="metric">{running ? "运行中" : "已停止"}</div>
-          <div className="metric-sub">{running ? "ComfyUI v0.3.58 · 端口 8188" : "ComfyUI v0.3.58 · 独立环境"}</div>
+          <div className="metric-sub">{data?.port != null ? `端口 ${data.port}` : "未注册实例"}</div>
         </div>
         <div className="card c3">
           <div className="card-title">队列</div>
           <div className="metric">
             {data ? data.queueWaiting : <Loading text="—" />} <small>等待</small>
           </div>
-          <div className="metric-sub">运行中 0 · 已完成 {data ? data.doneCount : "—"}</div>
+          <div className="metric-sub">已完成 {data ? data.doneCount : "—"}</div>
         </div>
         <div className="card c3">
           <div className="card-title">显存占用</div>
@@ -104,7 +112,7 @@ export function OverviewPage() {
               <span className="unavailable">不可用</span>
             )}
           </div>
-          <div className="metric-sub">共 16.0 GB</div>
+          <div className="metric-sub">{sample ? (vramTotal != null ? `共 ${vramTotal.toFixed(1)} GB` : "总量不可用") : "—"}</div>
           <div className="bar">
             <i style={{ width: `${vramPct}%` }} />
           </div>
@@ -148,12 +156,16 @@ export function OverviewPage() {
             </div>
           ) : assets === null ? (
             <Loading />
+          ) : assets.length === 0 ? (
+            <div className="empty" style={{ padding: "22px 0" }}>
+              <p>目录已就绪，还没有产物。生成第一张图后这里会自动出现。</p>
+            </div>
           ) : (
             <div className="thumbs">
               {assets.slice(0, 4).map((a) => (
                 <div className="thumb" key={a.file}>
-                  <AbstractThumb seed={a.seed} />
-                  <div className="cap">{a.file} · {a.workflow}</div>
+                  <AbstractThumb seed={seedFromFile(a.file)} />
+                  <div className="cap">{a.file} · {a.sizeMb} MB</div>
                 </div>
               ))}
             </div>
@@ -179,16 +191,18 @@ export function OverviewPage() {
         </div>
 
         <div className="card flat c6">
-          <div className="card-title">启动日志</div>
-          <div className="log" id="bootLog">
-            {log.map((line, i) => (
-              <span key={i}>
-                <span className="t">[{line.ts}]</span>{" "}
-                <span className={line.level}>{line.level === "ok" ? "✓" : line.level === "warn" ? "·" : "·"}</span>{" "}
-                {line.text}
-                {"\n"}
-              </span>
-            ))}
+          <div className="card-title">
+            <span>启动日志</span>
+            <span className="more">实例输出 · 3s 刷新</span>
+          </div>
+          <div className="log" ref={logBoxRef}>
+            {logs === null ? (
+              <Loading text="读取日志…" />
+            ) : logs.length === 0 ? (
+              "实例尚未启动，暂无日志。"
+            ) : (
+              logs.map((line, i) => <span key={i}>{line + "\n"}</span>)
+            )}
           </div>
         </div>
 

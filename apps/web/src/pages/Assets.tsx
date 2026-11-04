@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import { core } from "../api/mock";
+import { useCallback, useEffect, useState } from "react";
+import { core } from "../api/http";
 import type { AssetThumb } from "../api/types";
-import { AbstractThumb, MiniTreeArt } from "../components/art";
+import { AbstractThumb, MiniTreeArt, seedFromFile } from "../components/art";
+import { AssetPathInput } from "../components/AssetPathInput";
 import { ErrorCard, Loading, PageHead } from "../components/states";
 import { useApp } from "../state";
 
@@ -9,6 +10,8 @@ export function AssetsPage() {
   const { assetFolder, setAssetFolder } = useApp();
   const [assets, setAssets] = useState<AssetThumb[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [tick, setTick] = useState(0);
 
   // ADR-0008：未指定目录时整页空态 + 直达选择器，绝不静默写默认路径
   useEffect(() => {
@@ -24,13 +27,26 @@ export function AssetsPage() {
         setAssets([]);
         setError(String(err));
       });
-  }, [assetFolder]);
+  }, [assetFolder, tick]);
+
+  const save = useCallback(
+    (path: string | null) => {
+      setBusy(true);
+      setError(null);
+      core
+        .setAssetFolder(path)
+        .then(() => setAssetFolder(path))
+        .catch((err: unknown) => setError(String(err)))
+        .finally(() => setBusy(false));
+    },
+    [setAssetFolder],
+  );
 
   return (
     <section className="page active">
       <PageHead page="assets" />
       <div className="grid">
-        {error && <ErrorCard message={error} onRetry={() => setAssetFolder(assetFolder)} />}
+        {error && <ErrorCard message={error} onRetry={() => setTick((t) => t + 1)} />}
 
         {assetFolder !== null && (
           <div className="card flat c12">
@@ -38,17 +54,11 @@ export function AssetsPage() {
               <span>当前资产目录</span>
               <span className="more">{assets === null ? "…" : `${assets.length} 个文件`}</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <code className="num" style={{ fontSize: 12, background: "var(--bg2)", padding: "7px 11px", borderRadius: 8, border: "1px solid var(--line)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <code className="num" style={{ fontSize: 12, background: "var(--bg2)", padding: "7px 11px", borderRadius: 8, border: "1px solid var(--line)", alignSelf: "flex-start" }}>
                 {assetFolder}
               </code>
-              <button className="btn ghost" style={{ height: 30, fontSize: 12 }} onClick={() => setAssetFolder("F:\\AI\\ComfyOutput")}>
-                更换目录
-              </button>
-              <span className="st ok" style={{ fontSize: "11.5px" }}>
-                <i />
-                监听中
-              </span>
+              <AssetPathInput current={assetFolder} onSave={save} busy={busy} />
             </div>
           </div>
         )}
@@ -62,9 +72,9 @@ export function AssetsPage() {
               <br />
               建议选择一个独立磁盘上的文件夹。
             </p>
-            <button className="btn primary" onClick={() => setAssetFolder("E:\\ComfyOutput")}>
-              选择文件夹
-            </button>
+            <div style={{ width: "min(420px, 100%)" }}>
+              <AssetPathInput current={null} onSave={save} busy={busy} />
+            </div>
           </div>
         ) : assets === null ? (
           <div className="card c12">
@@ -74,17 +84,17 @@ export function AssetsPage() {
           <div className="card flat c12">
             <div className="card-title">
               <span>最近产物</span>
-              <span className="more">按时间倒序 · 悬停查看来源</span>
+              <span className="more">按时间倒序 · 上限 200 个</span>
             </div>
             {assets.length === 0 ? (
               <div className="loading">目录已就绪，还没有产物。生成第一张图后这里会自动出现。</div>
             ) : (
               <div className="thumbs">
                 {assets.map((a) => (
-                  <div className="thumb" key={a.file}>
-                    <AbstractThumb seed={a.seed} />
+                  <div className="thumb" key={a.file} title={`${a.mtime}`}>
+                    <AbstractThumb seed={seedFromFile(a.file)} />
                     <div className="cap">
-                      {a.file} · {a.workflow}
+                      {a.file} · {a.sizeMb} MB
                     </div>
                   </div>
                 ))}

@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { HardwareSample } from "./api/types";
+import type { HardwareSample, InstanceInfo } from "./api/types";
 
 export type PageKey =
   | "overview"
@@ -37,6 +37,10 @@ export interface AppState {
   toggleRunning: () => void;
   assetFolder: string | null;
   setAssetFolder: (path: string | null) => void;
+  /** null = 探活中；false = Core 不可达（全局横幅 + 各页错误态） */
+  coreOnline: boolean | null;
+  /** 最近一帧实例信息（3s 轮询）；null = 尚未取到 */
+  instance: InstanceInfo | null;
   /** null = 硬件订阅尚未吐出第一帧（加载态） */
   sample: HardwareSample | null;
   utilHist: number[];

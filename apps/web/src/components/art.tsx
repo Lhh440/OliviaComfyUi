@@ -114,6 +114,17 @@ export function AbstractThumb({ seed }: { seed: number }) {
   return usePainter((ctx, th) => paintAbstract(ctx, 200, 200, seed, th), 200, 200);
 }
 
+// 真实资产只有文件名（无工作流元数据，M1.3 才反向关联）——用文件名哈希
+// 生成稳定 seed，同一文件每次渲染的缩略图一致
+export function seedFromFile(name: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < name.length; i++) {
+    h ^= name.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) % 9973;
+}
+
 export function FruitIcon() {
   return usePainter(paintFruit, 26, 26);
 }

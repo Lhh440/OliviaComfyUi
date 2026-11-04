@@ -6,7 +6,7 @@
 
 Olivia = 橄榄树。启动即生长，长成即工作。
 
-[![status](https://img.shields.io/badge/status-M1%20%E8%AE%BE%E8%AE%A1%E9%98%B6%E6%AE%B5-5C6B39?style=flat-square)](#m1-目标)
+[![status](https://img.shields.io/badge/status-M1.1a%20%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E5%90%AF%E5%8A%A8%E5%99%A8-5C6B39?style=flat-square)](#m1-目标)
 [![platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-23261C?style=flat-square)](#系统要求)
 [![license](https://img.shields.io/badge/license-GPL--3.0-5C6B39?style=flat-square)](LICENSE)
 [![afdian](https://img.shields.io/badge/%E7%88%B1%E5%8F%91%E7%94%B5-%E8%B5%9E%E5%8A%A9-C09A46?style=flat-square)](https://ifdian.net/)
@@ -64,6 +64,7 @@ M1 之外的补充能力：队列中心、OOM 自愈建议、环境自检报告�
 | 文档 | 内容 |
 |---|---|
 | [docs/PLAN.md](docs/PLAN.md) | M1 技术方案：部署流水线、镜像策略、进程守护、硬件归因、资产库、画布接入 |
+| [docs/PLAN-M1.1.md](docs/PLAN-M1.1.md) | M1.1a 实施方案：本地服务 Core、实例注册、进程守护、硬件看板、队列透传 |
 | [docs/PLAN-M2.md](docs/PLAN-M2.md) | M2 技术方案：自研编辑器（灰盒 + 双模式）、模型市场、兼容矩阵、跨平台评估 |
 | [docs/DESIGN.md](docs/DESIGN.md) | 设计语言：四套主题与用色纪律、令牌、四档线宽、启动动画完整参数、主界面与状态设计 |
 | [docs/ADR.md](docs/ADR.md) | 架构决策记录：每条已拍板判断的**理由与代价** |
@@ -89,12 +90,33 @@ OliviaComfyUi/
 
 ---
 
+## 开发运行（M1.1a）
+
+```bash
+# 1) 本地服务 Core（默认 127.0.0.1:8600，令牌写入数据根 core.json）
+cd services/core
+python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+.venv\Scripts\python -m olivia_core
+
+# 2) 前端（先启动 Core 再起 dev，代理自动读 core.json 注入令牌）
+cd apps/web
+pnpm install && pnpm dev   # http://localhost:5173
+```
+
+- 数据根：`%LOCALAPPDATA%\OliviaComfyUI`（`OLIVIA_DATA_ROOT` 可覆盖）
+- 端到端验收：`cd services/core && .venv\Scripts\python tests\e2e_check.py`（自建临时数据根，不污染真实配置）
+- Core 未启动时前端显示「本地服务未连接」横幅，不会降级到假数据
+
+---
+
 ## 路线图
 
 | 版本 | 内容 |
 |---|---|
-| M1.0 | 设计系统、启动动效、主界面外壳 |
-| M1.1 | 部署引擎 + 进程守护 |
+| M1.0 ✅ | 设计系统、启动动效、主界面外壳 |
+| M1.1a ✅ | **最小可用启动器**：本地服务 Core（令牌鉴权）、注册已有 ComfyUI、进程守护、NVML 硬件看板、队列透传、资产目录 |
+| M1.1b | 部署引擎（uv + 镜像测速 + torch 流水线） |
 | M1.2 | 硬件看板 + 工作流归因 |
 | M1.3 | 资产库 + 反向关联 |
 | M1.4 | 画布同源嵌入 + 主题注入 |
