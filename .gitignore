@@ -13,6 +13,7 @@ __pycache__/
 instances/
 logs/
 cache/
+dist-release/
 *.sqlite
 *.sqlite3
 *.db

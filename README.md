@@ -90,6 +90,25 @@ OliviaComfyUi/
 
 ---
 
+## 下载与安装（alpha · 绿色版）
+
+正式安装包（Tauri，捆绑运行时）属 M1.5；当前以绿色源码包发布，见 GitHub Releases：
+
+1. 下载 `OliviaComfyUI-<版本>-windows-x64.zip`，**核对 SHA256** 与 Release 页公布值一致：
+
+   ```bat
+   certutil -hashfile OliviaComfyUI-<版本>-windows-x64.zip SHA256
+   ```
+
+2. 解压到任意目录，双击 `Olivia.bat`——首次运行自动创建虚拟环境并联网安装依赖（约 1–2 分钟，默认源失败自动切清华镜像），随后浏览器自动打开 `http://127.0.0.1:<端口>`
+3. 在「实例」页注册你机器上已有的 ComfyUI 目录（需包含 `main.py`）
+
+**SmartScreen 提示**：当前无代码签名证书（[ADR-0009](docs/ADR.md)），Windows 可能弹出「已保护你的电脑」——点「更多信息 → 仍要运行」。运行前务必完成第 1 步的哈希校验。
+
+卸载：删除解压目录与数据根 `%LOCALAPPDATA%\OliviaComfyUI` 即完全移除。
+
+---
+
 ## 开发运行（M1.1a）
 
 ```bash
@@ -105,7 +124,8 @@ pnpm install && pnpm dev   # http://localhost:5173
 ```
 
 - 数据根：`%LOCALAPPDATA%\OliviaComfyUI`（`OLIVIA_DATA_ROOT` 可覆盖）
-- 端到端验收：`cd services/core && .venv\Scripts\python tests\e2e_check.py`（自建临时数据根，不污染真实配置）
+- 端到端验收：`cd services/core && .venv\Scripts\python tests\e2e_check.py`（自建临时数据根，不污染真实配置；`--web-dist` 追加发行模式检查）
+- 构建发行包：`python scripts/build_release.py`（输出 `dist-release/`，见 ADR-0010）
 - Core 未启动时前端显示「本地服务未连接」横幅，不会降级到假数据
 
 ---
