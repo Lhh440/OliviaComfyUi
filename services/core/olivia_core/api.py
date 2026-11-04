@@ -8,6 +8,7 @@ import asyncio
 import json
 import os
 import shutil
+import socket
 import sys
 import urllib.request
 from contextlib import asynccontextmanager
@@ -22,7 +23,8 @@ from pydantic import BaseModel
 from . import config
 from .hw import HardwareMonitor
 from .proc import InstanceManager
-from .security import bearer_from_headers, new_token, origin_allowed, token_ok
+from .security import bearer_from_headers, new_token, origin_allowed, site_allowed, token_ok
+from .webui import mount_webui
 
 
 class RegisterIn(BaseModel):
@@ -34,8 +36,25 @@ class AssetFolderIn(BaseModel):
     path: str | None = None
 
 
-def create_app() -> tuple[FastAPI, int]:
-    port = int(os.environ.get("OLIVIA_CORE_PORT", "8600"))
+def _pick_port(preferred: int) -> int:
+    """首选端口被占（别的应用/残留 Core）时向上探测，避免启动直接失败。"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(("127.0.0.1", preferred))
+        except OSError:
+            for port in range(preferred + 1, preferred + 51):
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2:
+                    try:
+                        s2.bind(("127.0.0.1", port))
+                        return port
+                    except OSError:
+                        continue
+            raise RuntimeError(f"{preferred} 起连续 50 个端口均被占用") from None
+    return preferred
+
+
+def create_app(web_dist: Path | None = None) -> tuple[FastAPI, int]:
+    port = _pick_port(int(os.environ.get("OLIVIA_CORE_PORT", "8600")))
     token = new_token()
     config.write_core_json(port, token)
 
@@ -46,7 +65,7 @@ def create_app() -> tuple[FastAPI, int]:
     async def lifespan(_: FastAPI):
         yield
         # Core 正常退出（Ctrl+C / 壳关闭）时把实例一并带走，避免孤儿进程；
-        # 硬崩溃场景的孤儿防护需要 Windows Job Object，属 M1.1b 部署引擎
+        # 硬崩溃场景由 proc.py 的 Job Object 兜底（KILL_ON_JOB_CLOSE）
         if manager.running:
             try:
                 manager.stop()
@@ -54,7 +73,7 @@ def create_app() -> tuple[FastAPI, int]:
                 pass
 
     app = FastAPI(title="Olivia Core", docs_url=None, redoc_url=None, lifespan=lifespan)
-    # CORS 只是浏览器预检的必要条件；真正的门禁是令牌 + Origin 校验
+    # CORS 只是浏览器预检的必要条件；真正的门禁是令牌 + Origin/Sec-Fetch-Site 校验
     app.add_middleware(
         CORSMiddleware,
         allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
@@ -63,6 +82,8 @@ def create_app() -> tuple[FastAPI, int]:
     )
 
     def auth(request: Request, token_q: str | None = Query(default=None)) -> None:
+        if not site_allowed(request.headers.get("sec-fetch-site")):
+            raise HTTPException(403, "来源站点不被允许")
         if not origin_allowed(request.headers.get("origin")):
             raise HTTPException(403, "Origin 不被允许")
         supplied = bearer_from_headers(request.headers, token_q)
@@ -275,5 +296,9 @@ def create_app() -> tuple[FastAPI, int]:
                 await asyncio.sleep(1)
         except Exception:
             pass  # 客户端断开属正常路径
+
+    # 发行模式：构建产物存在时同源服务（必须在 /api 路由之后挂载，catch-all 才不会抢先）
+    if web_dist is not None:
+        mount_webui(app, web_dist, token)
 
     return app, port

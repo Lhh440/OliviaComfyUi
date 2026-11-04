@@ -1,11 +1,16 @@
 """M1.1a 端到端验收（PLAN-M1.1 §2 的 2/3/6 条），纯 stdlib，可进 CI。
 
-用法：services/core/.venv/Scripts/python.exe tests/e2e_check.py
+用法：
+    .venv/Scripts/python.exe tests/e2e_check.py
+    .venv/Scripts/python.exe tests/e2e_check.py --web-dist <构建产物目录>
+        # 追加发行模式检查：Core 同源服务前端 + __OLIVIA_BOOT__ 令牌注入
+
 自建临时数据根、拉起真实 Core、注册 tests/fake_comfyui 并走完整启停链路，
 全部通过打印 PASS 并清理；任一步失败打印 FAIL 并以非零码退出。
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import subprocess
@@ -37,18 +42,19 @@ def req(
     origin: str | None = None,
     body: dict | None = None,
     timeout: float = 5,
+    headers: dict[str, str] | None = None,
 ) -> tuple[int, dict | list | None]:
-    headers = {}
+    hdrs = dict(headers or {})
     if token:
-        headers["Authorization"] = f"Bearer {token}"
+        hdrs["Authorization"] = f"Bearer {token}"
     if origin:
-        headers["Origin"] = origin
+        hdrs["Origin"] = origin
     data = json.dumps(body).encode() if body is not None else None
     if data:
-        headers["Content-Type"] = "application/json"
-    r = urllib.request.Request(f"http://127.0.0.1:{CORE_PORT}{path}", data=data, headers=headers, method=method)
+        hdrs["Content-Type"] = "application/json"
+    r = urllib.request.Request(f"http://127.0.0.1:{CORE_PORT}{path}", data=data, headers=hdrs, method=method)
     try:
-        with urllib.request.urlopen(r, timeout=5) as resp:
+        with urllib.request.urlopen(r, timeout=timeout) as resp:
             raw = resp.read()
             return resp.status, json.loads(raw) if raw else None
     except urllib.error.HTTPError as e:
@@ -59,7 +65,22 @@ def req(
             return e.code, None
 
 
+def raw_get(path: str, timeout: float = 5) -> tuple[int, bytes]:
+    r = urllib.request.Request(f"http://127.0.0.1:{CORE_PORT}{path}")
+    try:
+        with urllib.request.urlopen(r, timeout=timeout) as resp:
+            return resp.status, resp.read()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read()
+    except OSError:
+        return 0, b""
+
+
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--web-dist", help="前端构建产物目录（启用发行模式检查）")
+    args = ap.parse_args()
+
     with tempfile.TemporaryDirectory(prefix="olivia-e2e-") as tmp:
         data_root = Path(tmp) / "data"
         env = {
@@ -69,8 +90,11 @@ def main() -> int:
         }
         venv_py = ROOT / ".venv" / "Scripts" / "python.exe"
         py = str(venv_py) if venv_py.exists() else sys.executable
+        cmd = [py, "-m", "olivia_core"]
+        if args.web_dist:
+            cmd += ["--serve-web", str(Path(args.web_dist).resolve())]
         core_proc = subprocess.Popen(
-            [py, "-m", "olivia_core"],
+            cmd,
             cwd=str(ROOT),
             env=env,
             stdout=subprocess.PIPE,
@@ -80,7 +104,7 @@ def main() -> int:
             errors="replace",
         )
         try:
-            run_checks(core_proc, data_root)
+            run_checks(core_proc, data_root, web_dist=args.web_dist)
         finally:
             core_proc.terminate()
             try:
@@ -96,7 +120,7 @@ def main() -> int:
     return 0
 
 
-def run_checks(core_proc: subprocess.Popen, data_root: Path) -> None:
+def run_checks(core_proc: subprocess.Popen, data_root: Path, web_dist: str | None = None) -> None:
     # 1) 健康检查免鉴权
     for _ in range(50):
         try:
@@ -122,6 +146,12 @@ def run_checks(core_proc: subprocess.Popen, data_root: Path) -> None:
     check("错令牌 → 401", status == 401, f"got {status}")
     status, _ = req("GET", "/api/instance", token=token, origin="http://evil.example.com")
     check("非 localhost Origin → 403", status == 403, f"got {status}")
+    status, _ = req(
+        "GET", "/api/instance", token=token, headers={"Sec-Fetch-Site": "cross-site"}
+    )
+    check("Sec-Fetch-Site: cross-site → 403（ADR-0004）", status == 403, f"got {status}")
+    status, _ = req("GET", "/api/instance", token=token, origin="http://localhost:5173")
+    check("localhost Origin → 放行", status == 200, f"got {status}")
     status, body = req("GET", "/api/instance", token=token)
     check("正确令牌 → 200 且未注册", status == 200 and body is not None and body["deployed"] is False, f"got {status}")
 
@@ -219,7 +249,26 @@ def run_checks(core_proc: subprocess.Popen, data_root: Path) -> None:
     status, body = req("GET", "/api/instance", token)
     check("注销后 deployed=false", bool(body) and body["deployed"] is False)
 
-    # 11) Core 被强杀（Windows terminate 即硬杀）时，实例随作业对象回收，不产生孤儿
+    # 11) 发行模式（--web-dist）：同源服务前端 + __OLIVIA_BOOT__ 注入（ADR-0004）
+    #     必须排在孤儿测试之前——孤儿测试会把 Core 硬杀
+    if web_dist:
+        status, html = raw_get("/")
+        check("发行模式:/ 返回页面", status == 200 and b"root" in html, f"got {status}")
+        core_json = json.loads((data_root / "core.json").read_text(encoding="utf-8"))
+        check(
+            "发行模式:HTML 注入 __OLIVIA_BOOT__ 令牌",
+            f'window.__OLIVIA_BOOT__ = {{"token": "{core_json["token"]}"}}'.encode() in html,
+        )
+        status, _ = raw_get("/api/instance")
+        check("发行模式:catch-all 不遮蔽 /api（无令牌仍 401）", status == 401, f"got {status}")
+        # index.html 里的第一个 assets 引用应可直出
+        asset = html.decode("utf-8").split('src="/assets/')[1].split('"')[0]
+        status, _ = raw_get(f"/assets/{asset}")
+        check("发行模式:静态资源直出", status == 200, f"got {status}")
+        status, _ = raw_get("/favicon.svg")
+        check("发行模式:缺失静态文件 → 404", status == 404, f"got {status}")
+
+    # 12) Core 被强杀（Windows terminate 即硬杀）时，实例随作业对象回收，不产生孤儿
     status, _ = req(
         "POST",
         "/api/instance/register",
